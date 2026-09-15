@@ -78,8 +78,11 @@ public sealed class SudokuGame
         }
 
         var (row, col) = Board.Coords(Selected);
-        row = Math.Clamp(row + dRow, 0, Board.Size - 1);
-        col = Math.Clamp(col + dCol, 0, Board.Size - 1);
+        row = Math.Clamp(row + dRow, 0, Board.Height - 1);
+        if (Board.Kind == PuzzleKind.Star)
+            col = (col + dCol + Board.Width) % Board.Width;
+        else
+            col = Math.Clamp(col + dCol, 0, Board.Width - 1);
         Selected = Board.Index(row, col);
     }
 
@@ -117,9 +120,7 @@ public sealed class SudokuGame
     {
         if (Selected < 0 || cell == Selected)
             return false;
-        var (r1, c1) = Board.Coords(Selected);
-        var (r2, c2) = Board.Coords(cell);
-        return r1 == r2 || c1 == c2 || Board.SameBox(Selected, cell);
+        return Board.ArePeers(Selected, cell);
     }
 
     public bool SameValueAsSelected(int cell) =>
@@ -132,9 +133,7 @@ public sealed class SudokuGame
         {
             if (i == cell)
                 continue;
-            var (r1, c1) = Board.Coords(cell);
-            var (r2, c2) = Board.Coords(i);
-            if (r1 == r2 || c1 == c2 || Board.SameBox(cell, i))
+            if (Board.ArePeers(cell, i))
                 Notes[i] &= ~bit;
         }
     }

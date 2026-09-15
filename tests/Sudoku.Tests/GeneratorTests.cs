@@ -36,14 +36,19 @@ public class GeneratorTests
     }
 
     [Fact]
-    public void AstraRegions_ArePyramidsOfNine()
+    public void AstraLayout_Pattern_HasUniqueDigitsInPyramidsAndLines()
     {
-        for (var seed = 0; seed < 16; seed++)
+        var board = BoardFactory.Astra();
+        Assert.Equal(7, board.Size);
+        Assert.Equal(AstraLayout.Cells, board.CellCount);
+        Assert.All(board.Groups, g => Assert.Equal(7, g.Length));
+
+        var grid = AstraLayout.PatternSolution(new Random(5));
+        Assert.True(_solver.IsValid(grid, board, allowEmpty: false));
+        for (var sector = 0; sector < AstraLayout.Sectors; sector++)
         {
-            var map = RegionBuilder.AstraTriangles(new Random(seed));
-            Assert.False(RegionBuilder.IsStandardBoxes(map, 9, 3));
-            for (var region = 0; region < 9; region++)
-                Assert.True(RegionBuilder.IsTriangleRegion(map, region, 9), $"seed {seed} region {region}");
+            var pyramid = Enumerable.Range(0, 7).Select(r => grid[AstraLayout.Index(r, sector)]);
+            Assert.Equal(7, pyramid.Distinct().Count());
         }
     }
 
@@ -64,8 +69,8 @@ public class GeneratorTests
             Assert.False(RegionBuilder.IsStandardBoxes(puzzle.Board.RegionOfCell, 9, 3));
         if (kind == PuzzleKind.Star)
         {
-            for (var region = 0; region < 9; region++)
-                Assert.True(RegionBuilder.IsTriangleRegion(puzzle.Board.RegionOfCell, region, 9));
+            Assert.Equal(7, puzzle.Board.Size);
+            Assert.Equal(AstraLayout.Cells, puzzle.Board.CellCount);
         }
     }
 

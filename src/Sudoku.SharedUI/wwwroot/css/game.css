@@ -191,34 +191,6 @@ h1, h2 {
     z-index: 1;
 }
 
-.stage.diagonal::before,
-.stage.diagonal::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 2;
-    background: linear-gradient(
-        to bottom right,
-        transparent calc(50% - 2.5px),
-        #b57a12 calc(50% - 2.5px),
-        #e8b85a calc(50%),
-        #b57a12 calc(50% + 2.5px),
-        transparent calc(50% + 2.5px)
-    );
-}
-
-.stage.diagonal::after {
-    background: linear-gradient(
-        to bottom left,
-        transparent calc(50% - 2.5px),
-        #b57a12 calc(50% - 2.5px),
-        #e8b85a calc(50%),
-        #b57a12 calc(50% + 2.5px),
-        transparent calc(50% + 2.5px)
-    );
-}
-
 .cell.conflict, .cell.wrong {
     background: rgba(224, 122, 106, 0.28);
 }
@@ -229,14 +201,6 @@ h1, h2 {
 .cell.edge-e { border-right: 2px solid var(--thick); }
 .cell.box-w { border-left: 2px solid var(--thick); }
 .cell.box-n { border-top: 2px solid var(--thick); }
-
-.stage.star .cell.edge-n,
-.stage.star .cell.edge-s,
-.stage.star .cell.edge-w,
-.stage.star .cell.edge-e {
-    border-width: 3px;
-    border-color: rgba(16, 33, 43, 0.78);
-}
 
 .r0 { background-color: rgba(217, 164, 65, 0.08); }
 .r1 { background-color: rgba(125, 202, 165, 0.10); }
@@ -249,35 +213,52 @@ h1, h2 {
 .r8 { background-color: rgba(210, 140, 140, 0.10); }
 
 .stage.diagonal .cell.diag {
-    background-color: rgba(217, 164, 65, 0.38);
-    box-shadow: inset 0 0 0 2px rgba(181, 122, 18, 0.6);
-}
-
-.stage.diagonal .cell.diag-main {
-    background-image: repeating-linear-gradient(
-        -45deg,
-        rgba(181, 122, 18, 0.28) 0 6px,
-        transparent 6px 12px
-    );
-}
-
-.stage.diagonal .cell.diag-anti {
-    background-image: repeating-linear-gradient(
-        45deg,
-        rgba(181, 122, 18, 0.28) 0 6px,
-        transparent 6px 12px
-    );
-}
-
-.stage.diagonal .cell.diag-both {
-    background-color: rgba(217, 164, 65, 0.52);
-    background-image:
-        repeating-linear-gradient(-45deg, rgba(181, 122, 18, 0.3) 0 6px, transparent 6px 12px),
-        repeating-linear-gradient(45deg, rgba(181, 122, 18, 0.3) 0 6px, transparent 6px 12px);
+    background-color: rgba(217, 164, 65, 0.22);
 }
 
 .stage.diagonal .cell.selected {
-    background-color: rgba(217, 164, 65, 0.62);
+    background-color: rgba(217, 164, 65, 0.46);
+}
+
+.stage.star {
+    width: min(100%, 620px);
+}
+
+.astra-board {
+    width: 100%;
+    display: block;
+    overflow: visible;
+}
+
+.acell {
+    stroke: rgba(16, 33, 43, 0.55);
+    stroke-width: 0.012;
+    cursor: pointer;
+}
+
+.acell.chk0 { fill: #f7f1e6; }
+.acell.chk1 { fill: #efcfc4; }
+.acell.peer { fill: #d9e4d6; }
+.acell.selected { fill: #e8c36a; }
+.acell.conflict, .acell.wrong { fill: #e7a599; }
+
+.aval, .anotes {
+    pointer-events: none;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    font-weight: 650;
+    font-family: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+}
+
+.aval {
+    fill: #1d5c7a;
+}
+
+.aval.given { fill: #1b2a33; }
+.aval.same { fill: #8a4b12; }
+
+.anotes {
+    fill: #5d6b73;
 }
 
 .notes {

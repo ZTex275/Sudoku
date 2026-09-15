@@ -61,19 +61,20 @@ public static class BoardFactory
         };
     }
 
-    public static BoardDefinition Star(int[] regionOfCell)
+    public static BoardDefinition Astra()
     {
-        var size = 9;
-        EnsureRegions(regionOfCell, size);
-        var groups = RowColGroups(size);
-        groups.AddRange(GroupsFromRegions(regionOfCell, size));
+        var regions = new int[AstraLayout.Cells];
+        for (var i = 0; i < regions.Length; i++)
+            regions[i] = AstraLayout.Coords(i).Sector;
+
         return new BoardDefinition
         {
             Kind = PuzzleKind.Star,
             Title = "Астра",
-            Size = size,
-            Groups = groups,
-            RegionOfCell = regionOfCell
+            Size = AstraLayout.Rings,
+            Stride = AstraLayout.Sectors,
+            Groups = AstraLayout.AllGroups(),
+            RegionOfCell = regions
         };
     }
 

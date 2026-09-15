@@ -1,32 +1,54 @@
 @using Sudoku.Core
 @using Sudoku.Core.Models
+@using Sudoku.Core.Services
 
-<div class="board" style="--n: @Game.Board.Size" role="grid" aria-label="Поле судоку">
-    @for (var i = 0; i < Game.Board.CellCount; i++)
-    {
-        var cell = i;
-        var (row, col) = Game.Board.Coords(cell);
-        var region = Game.Board.RegionOfCell[cell];
-        <button type="button"
-                class="@CellClass(cell, row, col, region)"
-                role="gridcell"
-                @onclick="() => Select(cell)">
-            @if (Game.Current[cell] != 0)
-            {
-                <span class="val">@DigitSymbols.Of(Game.Current[cell])</span>
-            }
-            else if (Game.Notes[cell] != 0)
-            {
-                <span class="notes" style="--notes: @(Game.Board.Size <= 9 ? 3 : 4)">
-                    @for (var v = 1; v <= Game.Board.Size; v++)
-                    {
-                        <span>@((Game.Notes[cell] & (1UL << v)) != 0 ? DigitSymbols.Of(v) : "")</span>
-                    }
-                </span>
-            }
-        </button>
-    }
-</div>
+@if (Game.Board.Kind == PuzzleKind.Star)
+{
+    <svg class="astra-board" viewBox="-1.14 -1.14 2.28 2.28" role="grid" aria-label="Астра">
+        @for (var i = 0; i < Game.Board.CellCount; i++)
+        {
+            var cell = i;
+            var (ring, sector) = AstraLayout.Coords(cell);
+            var (cx, cy) = AstraLayout.Center(ring, sector);
+            <g>
+                <polygon class="@AstraClass(cell, ring, sector)"
+                         points="@AstraLayout.PolygonPoints(ring, sector)"
+                         role="gridcell"
+                         @onclick="() => Select(cell)"></polygon>
+                @((MarkupString)AstraLabel(cell, cx, cy))
+            </g>
+        }
+    </svg>
+}
+else
+{
+    <div class="board" style="--n: @Game.Board.Size" role="grid" aria-label="Поле судоку">
+        @for (var i = 0; i < Game.Board.CellCount; i++)
+        {
+            var cell = i;
+            var (row, col) = Game.Board.Coords(cell);
+            var region = Game.Board.RegionOfCell[cell];
+            <button type="button"
+                    class="@CellClass(cell, row, col, region)"
+                    role="gridcell"
+                    @onclick="() => Select(cell)">
+                @if (Game.Current[cell] != 0)
+                {
+                    <span class="val">@DigitSymbols.Of(Game.Current[cell])</span>
+                }
+                else if (Game.Notes[cell] != 0)
+                {
+                    <span class="notes" style="--notes: @(Game.Board.Size <= 9 ? 3 : 4)">
+                        @for (var v = 1; v <= Game.Board.Size; v++)
+                        {
+                            <span>@((Game.Notes[cell] & (1UL << v)) != 0 ? DigitSymbols.Of(v) : "")</span>
+                        }
+                    </span>
+                }
+            </button>
+        }
+    </div>
+}
 
 @code {
     [Parameter, EditorRequired] public SudokuGame Game { get; set; } = default!;
@@ -45,6 +67,53 @@
         await OnChanged.InvokeAsync();
     }
 
+    private string AstraClass(int cell, int ring, int sector)
+    {
+        var cls = $"acell chk{(ring + sector) & 1}";
+        if (cell == Game.Selected) cls += " selected";
+        if (Game.IsGiven(cell)) cls += " given";
+        if (Game.IsPeer(cell)) cls += " peer";
+        if (Game.SameValueAsSelected(cell)) cls += " same";
+        if (_conflicts.Contains(cell)) cls += " conflict";
+        if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
+        return cls;
+    }
+
+    private string AstraLabel(int cell, double cx, double cy)
+    {
+        var x = cx.ToString("0.###");
+        var y = cy.ToString("0.###");
+        if (Game.Current[cell] != 0)
+        {
+            var value = DigitSymbols.Of(Game.Current[cell]);
+            return $"<text class=\"{AstraTextClass(cell)}\" x=\"{x}\" y=\"{y}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"0.09\">{value}</text>";
+        }
+
+        if (Game.Notes[cell] != 0)
+            return $"<text class=\"anotes\" x=\"{x}\" y=\"{y}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"0.038\">{AstraNotes(cell)}</text>";
+
+        return string.Empty;
+    }
+
+    private string AstraTextClass(int cell)
+    {
+        var cls = "aval";
+        if (Game.IsGiven(cell)) cls += " given";
+        if (Game.SameValueAsSelected(cell)) cls += " same";
+        return cls;
+    }
+
+    private string AstraNotes(int cell)
+    {
+        var parts = new List<string>(7);
+        for (var v = 1; v <= Game.Board.Size; v++)
+        {
+            if ((Game.Notes[cell] & (1UL << v)) != 0)
+                parts.Add(DigitSymbols.Of(v));
+        }
+        return string.Join(" ", parts);
+    }
+
     private string CellClass(int cell, int row, int col, int region)
     {
         var size = Game.Board.Size;
@@ -53,12 +122,8 @@
         if (Game.IsGiven(cell)) cls += " given";
         if (Game.IsPeer(cell)) cls += " peer";
         if (Game.SameValueAsSelected(cell)) cls += " same";
-        if (Game.Board.Kind == PuzzleKind.Diagonal)
-        {
-            if (row == col) cls += " diag diag-main";
-            if (row + col == size - 1) cls += " diag diag-anti";
-            if (row == col && row + col == size - 1) cls += " diag-both";
-        }
+        if (Game.Board.Kind == PuzzleKind.Diagonal && Game.Board.DiagonalCells.Length > cell && Game.Board.DiagonalCells[cell])
+            cls += " diag";
         if (_conflicts.Contains(cell)) cls += " conflict";
         if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
 

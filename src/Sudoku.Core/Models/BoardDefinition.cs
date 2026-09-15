@@ -5,17 +5,41 @@ public sealed class BoardDefinition
     public required PuzzleKind Kind { get; init; }
     public required string Title { get; init; }
     public required int Size { get; init; }
+    public int Stride { get; init; }
     public int BoxWidth { get; init; }
     public int BoxHeight { get; init; }
     public required IReadOnlyList<int[]> Groups { get; init; }
     public required int[] RegionOfCell { get; init; }
     public bool[] DiagonalCells { get; init; } = Array.Empty<bool>();
     public bool[] StarCells { get; init; } = Array.Empty<bool>();
-    public int CellCount => Size * Size;
+    public int Width => Stride > 0 ? Stride : Size;
+    public int Height => Size;
+    public int CellCount => Width * Height;
 
-    public int Index(int row, int col) => row * Size + col;
+    public int Index(int row, int col) => row * Width + col;
 
-    public (int Row, int Col) Coords(int cell) => (cell / Size, cell % Size);
+    public (int Row, int Col) Coords(int cell) => (cell / Width, cell % Width);
+
+    public bool ArePeers(int a, int b)
+    {
+        if (a == b)
+            return false;
+        foreach (var group in Groups)
+        {
+            var hasA = false;
+            var hasB = false;
+            foreach (var cell in group)
+            {
+                if (cell == a) hasA = true;
+                if (cell == b) hasB = true;
+            }
+
+            if (hasA && hasB)
+                return true;
+        }
+
+        return false;
+    }
 
     public bool SameBox(int a, int b)
     {

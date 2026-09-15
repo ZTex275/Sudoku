@@ -14,8 +14,8 @@ public sealed class SudokuGenerator
             PuzzleKind.Classic9 => GenerateRegular(BoardFactory.Classic(9), difficulty, rng, usePattern: true),
             PuzzleKind.Classic16 => GenerateRegular(BoardFactory.Classic(16), difficulty, rng, usePattern: true),
             PuzzleKind.Diagonal => GenerateConstrained9(PuzzleKind.Diagonal, difficulty, rng),
-            PuzzleKind.Jigsaw => GenerateJigsawOrStar(PuzzleKind.Jigsaw, difficulty, rng),
-            PuzzleKind.Star => GenerateJigsawOrStar(PuzzleKind.Star, difficulty, rng),
+            PuzzleKind.Jigsaw => GenerateJigsaw(difficulty, rng),
+            PuzzleKind.Star => GenerateAstra(difficulty, rng),
             _ => throw new ArgumentOutOfRangeException(nameof(kind))
         };
     }
@@ -66,16 +66,29 @@ public sealed class SudokuGenerator
         };
     }
 
-    private GeneratedPuzzle GenerateJigsawOrStar(PuzzleKind kind, Difficulty difficulty, Random rng)
+    private GeneratedPuzzle GenerateAstra(Difficulty difficulty, Random rng)
+    {
+        var board = BoardFactory.Astra();
+        var solution = AstraLayout.PatternSolution(rng);
+        if (!_solver.IsValid(solution, board, allowEmpty: false))
+            throw new InvalidOperationException("Не удалось построить судоку-астру.");
+
+        var givens = DigHoles(solution, board, difficulty, rng);
+        return new GeneratedPuzzle
+        {
+            Board = board,
+            Difficulty = difficulty,
+            Givens = givens,
+            Solution = solution
+        };
+    }
+
+    private GeneratedPuzzle GenerateJigsaw(Difficulty difficulty, Random rng)
     {
         for (var attempt = 0; attempt < 120; attempt++)
         {
-            var regions = kind == PuzzleKind.Star
-                ? RegionBuilder.AstraTriangles(rng)
-                : RegionBuilder.Jigsaw(rng);
-            var board = kind == PuzzleKind.Star
-                ? BoardFactory.Star(regions)
-                : BoardFactory.Jigsaw(regions);
+            var regions = RegionBuilder.Jigsaw(rng);
+            var board = BoardFactory.Jigsaw(regions);
 
             var filled = new int[board.CellCount];
             if (!_solver.Solve(filled, board, rng, nodeLimit: 400_000)
@@ -92,10 +105,7 @@ public sealed class SudokuGenerator
             };
         }
 
-        throw new InvalidOperationException(
-            kind == PuzzleKind.Star
-                ? "Не удалось построить судоку-астру. Попробуйте ещё раз."
-                : "Не удалось построить фигурное судоку. Попробуйте ещё раз.");
+        throw new InvalidOperationException("Не удалось построить фигурное судоку. Попробуйте ещё раз.");
     }
 
     private int[]? FillEmpty(BoardDefinition board, Random rng)
@@ -144,7 +154,18 @@ public sealed class SudokuGenerator
             };
         }
 
-        var extra = board.Kind is PuzzleKind.Jigsaw or PuzzleKind.Star or PuzzleKind.Diagonal ? 2 : 0;
+        if (board.Kind == PuzzleKind.Star)
+        {
+            return difficulty switch
+            {
+                Difficulty.Easy => 50,
+                Difficulty.Medium => 40,
+                Difficulty.Hard => 32,
+                _ => 24
+            };
+        }
+
+        var extra = board.Kind is PuzzleKind.Jigsaw or PuzzleKind.Diagonal ? 2 : 0;
         return extra + difficulty switch
         {
             Difficulty.Easy => 40,
