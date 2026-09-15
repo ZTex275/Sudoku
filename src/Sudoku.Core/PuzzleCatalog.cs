@@ -10,7 +10,7 @@ public static class PuzzleCatalog
         new(PuzzleKind.Classic16, "Большое 16×16", "Гексадоку: 1–9 и A–G, квадраты 4×4", "16×16"),
         new(PuzzleKind.Diagonal, "Диагональное", "Судоку-X: обе длинные диагонали без повторов", "X"),
         new(PuzzleKind.Jigsaw, "Фигурное", "В строке, столбце и фигуре из 9 клеток цифры не повторяются", "Jigsaw"),
-        new(PuzzleKind.Star, "Звезда", "Судоку-астра: треугольные фигуры вместо квадратов", "▲")
+        new(PuzzleKind.Star, "Астра", "Пирамиды из 9 клеток, соединённые рядом; в строке, столбце и пирамиде цифры не повторяются", "▲")
     ];
 
     public static IReadOnlyList<(Difficulty Value, string Title)> Difficulties { get; } =

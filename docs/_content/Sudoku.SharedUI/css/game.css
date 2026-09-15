@@ -191,8 +191,32 @@ h1, h2 {
     z-index: 1;
 }
 
-.cell.diag {
-    background-image: linear-gradient(180deg, rgba(217, 164, 65, 0.12), transparent);
+.stage.diagonal::before,
+.stage.diagonal::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background: linear-gradient(
+        to bottom right,
+        transparent calc(50% - 2.5px),
+        #b57a12 calc(50% - 2.5px),
+        #e8b85a calc(50%),
+        #b57a12 calc(50% + 2.5px),
+        transparent calc(50% + 2.5px)
+    );
+}
+
+.stage.diagonal::after {
+    background: linear-gradient(
+        to bottom left,
+        transparent calc(50% - 2.5px),
+        #b57a12 calc(50% - 2.5px),
+        #e8b85a calc(50%),
+        #b57a12 calc(50% + 2.5px),
+        transparent calc(50% + 2.5px)
+    );
 }
 
 .cell.conflict, .cell.wrong {
@@ -206,6 +230,14 @@ h1, h2 {
 .cell.box-w { border-left: 2px solid var(--thick); }
 .cell.box-n { border-top: 2px solid var(--thick); }
 
+.stage.star .cell.edge-n,
+.stage.star .cell.edge-s,
+.stage.star .cell.edge-w,
+.stage.star .cell.edge-e {
+    border-width: 3px;
+    border-color: rgba(16, 33, 43, 0.78);
+}
+
 .r0 { background-color: rgba(217, 164, 65, 0.08); }
 .r1 { background-color: rgba(125, 202, 165, 0.10); }
 .r2 { background-color: rgba(110, 158, 201, 0.10); }
@@ -215,6 +247,38 @@ h1, h2 {
 .r6 { background-color: rgba(180, 150, 120, 0.12); }
 .r7 { background-color: rgba(120, 170, 190, 0.10); }
 .r8 { background-color: rgba(210, 140, 140, 0.10); }
+
+.stage.diagonal .cell.diag {
+    background-color: rgba(217, 164, 65, 0.38);
+    box-shadow: inset 0 0 0 2px rgba(181, 122, 18, 0.6);
+}
+
+.stage.diagonal .cell.diag-main {
+    background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(181, 122, 18, 0.28) 0 6px,
+        transparent 6px 12px
+    );
+}
+
+.stage.diagonal .cell.diag-anti {
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba(181, 122, 18, 0.28) 0 6px,
+        transparent 6px 12px
+    );
+}
+
+.stage.diagonal .cell.diag-both {
+    background-color: rgba(217, 164, 65, 0.52);
+    background-image:
+        repeating-linear-gradient(-45deg, rgba(181, 122, 18, 0.3) 0 6px, transparent 6px 12px),
+        repeating-linear-gradient(45deg, rgba(181, 122, 18, 0.3) 0 6px, transparent 6px 12px);
+}
+
+.stage.diagonal .cell.selected {
+    background-color: rgba(217, 164, 65, 0.62);
+}
 
 .notes {
     display: grid;

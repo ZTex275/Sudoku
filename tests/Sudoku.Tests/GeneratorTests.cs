@@ -36,12 +36,15 @@ public class GeneratorTests
     }
 
     [Fact]
-    public void AstraRegions_AreTrianglesOfNine()
+    public void AstraRegions_ArePyramidsOfNine()
     {
-        var map = RegionBuilder.AstraTriangles(new Random(5));
-        Assert.False(RegionBuilder.IsStandardBoxes(map, 9, 3));
-        for (var region = 0; region < 9; region++)
-            Assert.True(RegionBuilder.IsTriangleRegion(map, region, 9), $"region {region}");
+        for (var seed = 0; seed < 16; seed++)
+        {
+            var map = RegionBuilder.AstraTriangles(new Random(seed));
+            Assert.False(RegionBuilder.IsStandardBoxes(map, 9, 3));
+            for (var region = 0; region < 9; region++)
+                Assert.True(RegionBuilder.IsTriangleRegion(map, region, 9), $"seed {seed} region {region}");
+        }
     }
 
     [Theory]
