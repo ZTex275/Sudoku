@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>
+      Заготовка Android-хоста. Сейчас это обычная net8.0-библиотека, чтобы решение собиралось на Linux без MAUI workload.
+      Когда будете выпускать приложение: смените SDK на Microsoft.NET.Sdk.Razor, добавьте UseMaui + net8.0-android
+      и покажите SharedUI.GameView внутри BlazorWebView. Игровая логика уже общая — Sudoku.Core.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sudoku.SharedUI\Sudoku.SharedUI.csproj" />
+  </ItemGroup>
+
+</Project>

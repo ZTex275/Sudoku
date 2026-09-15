@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B70A3A28-1A05-4AFC-9E32-8FA638C54251}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sudoku.Core", "src\Sudoku.Core\Sudoku.Core.csproj", "{84A92E0B-DA35-46CF-B6FC-084B5670D442}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sudoku.SharedUI", "src\Sudoku.SharedUI\Sudoku.SharedUI.csproj", "{4AF30F01-1E47-4436-A7AA-F3C029BD1468}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sudoku.Web", "src\Sudoku.Web\Sudoku.Web.csproj", "{C290BD74-E609-44BB-BCA1-E9140DCE216D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sudoku.Maui", "src\Sudoku.Maui\Sudoku.Maui.csproj", "{50B58F83-2500-46DB-B9AF-FE0DFC954218}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7066C331-9F5B-45E4-A90B-58C0DE03C7BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sudoku.Tests", "tests\Sudoku.Tests\Sudoku.Tests.csproj", "{8AFA693D-7552-45A9-AD7D-DDFAC78A670B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{84A92E0B-DA35-46CF-B6FC-084B5670D442}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84A92E0B-DA35-46CF-B6FC-084B5670D442}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84A92E0B-DA35-46CF-B6FC-084B5670D442}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84A92E0B-DA35-46CF-B6FC-084B5670D442}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AF30F01-1E47-4436-A7AA-F3C029BD1468}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AF30F01-1E47-4436-A7AA-F3C029BD1468}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AF30F01-1E47-4436-A7AA-F3C029BD1468}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AF30F01-1E47-4436-A7AA-F3C029BD1468}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C290BD74-E609-44BB-BCA1-E9140DCE216D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C290BD74-E609-44BB-BCA1-E9140DCE216D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C290BD74-E609-44BB-BCA1-E9140DCE216D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C290BD74-E609-44BB-BCA1-E9140DCE216D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50B58F83-2500-46DB-B9AF-FE0DFC954218}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50B58F83-2500-46DB-B9AF-FE0DFC954218}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50B58F83-2500-46DB-B9AF-FE0DFC954218}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50B58F83-2500-46DB-B9AF-FE0DFC954218}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8AFA693D-7552-45A9-AD7D-DDFAC78A670B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8AFA693D-7552-45A9-AD7D-DDFAC78A670B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8AFA693D-7552-45A9-AD7D-DDFAC78A670B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8AFA693D-7552-45A9-AD7D-DDFAC78A670B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{84A92E0B-DA35-46CF-B6FC-084B5670D442} = {B70A3A28-1A05-4AFC-9E32-8FA638C54251}
+		{4AF30F01-1E47-4436-A7AA-F3C029BD1468} = {B70A3A28-1A05-4AFC-9E32-8FA638C54251}
+		{C290BD74-E609-44BB-BCA1-E9140DCE216D} = {B70A3A28-1A05-4AFC-9E32-8FA638C54251}
+		{50B58F83-2500-46DB-B9AF-FE0DFC954218} = {B70A3A28-1A05-4AFC-9E32-8FA638C54251}
+		{8AFA693D-7552-45A9-AD7D-DDFAC78A670B} = {7066C331-9F5B-45E4-A90B-58C0DE03C7BC}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,85 @@
+@using Sudoku.Core
+@using Sudoku.Core.Models
+
+<div class="board" style="--n: @Game.Board.Size" role="grid" aria-label="Поле судоку">
+    @for (var i = 0; i < Game.Board.CellCount; i++)
+    {
+        var cell = i;
+        var (row, col) = Game.Board.Coords(cell);
+        var region = Game.Board.RegionOfCell[cell];
+        <button type="button"
+                class="@CellClass(cell, row, col, region)"
+                role="gridcell"
+                @onclick="() => Select(cell)">
+            @if (Game.Current[cell] != 0)
+            {
+                <span class="val">@DigitSymbols.Of(Game.Current[cell])</span>
+            }
+            else if (Game.Notes[cell] != 0)
+            {
+                <span class="notes" style="--notes: @(Game.Board.Size <= 9 ? 3 : 4)">
+                    @for (var v = 1; v <= Game.Board.Size; v++)
+                    {
+                        <span>@((Game.Notes[cell] & (1UL << v)) != 0 ? DigitSymbols.Of(v) : "")</span>
+                    }
+                </span>
+            }
+            @if (Game.Board.StarCells.Length > cell && Game.Board.StarCells[cell])
+            {
+                <span class="star-dot" aria-hidden="true">★</span>
+            }
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SudokuGame Game { get; set; } = default!;
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private HashSet<int> _conflicts = [];
+
+    protected override void OnParametersSet()
+    {
+        _conflicts = Game.Conflicts().ToHashSet();
+    }
+
+    private async Task Select(int cell)
+    {
+        Game.Selected = cell;
+        await OnChanged.InvokeAsync();
+    }
+
+    private string CellClass(int cell, int row, int col, int region)
+    {
+        var size = Game.Board.Size;
+        var cls = $"cell r{region % 9}";
+        if (cell == Game.Selected) cls += " selected";
+        if (Game.IsGiven(cell)) cls += " given";
+        if (Game.IsPeer(cell)) cls += " peer";
+        if (Game.SameValueAsSelected(cell)) cls += " same";
+        if (Game.Board.DiagonalCells.Length > cell && Game.Board.DiagonalCells[cell]) cls += " diag";
+        if (Game.Board.StarCells.Length > cell && Game.Board.StarCells[cell]) cls += " star";
+        if (_conflicts.Contains(cell)) cls += " conflict";
+        if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
+
+        if (row == 0 || RegionAt(row - 1, col) != region) cls += " edge-n";
+        if (col == 0 || RegionAt(row, col - 1) != region) cls += " edge-w";
+        if (row == size - 1 || RegionAt(row + 1, col) != region) cls += " edge-s";
+        if (col == size - 1 || RegionAt(row, col + 1) != region) cls += " edge-e";
+
+        if (Game.Board.BoxWidth > 0)
+        {
+            if (col % Game.Board.BoxWidth == 0) cls += " box-w";
+            if (row % Game.Board.BoxHeight == 0) cls += " box-n";
+        }
+
+        return cls;
+    }
+
+    private int RegionAt(int row, int col)
+    {
+        if (row < 0 || col < 0 || row >= Game.Board.Size || col >= Game.Board.Size)
+            return -1;
+        return Game.Board.RegionOfCell[Game.Board.Index(row, col)];
+    }
+}

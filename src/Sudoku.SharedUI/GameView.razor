@@ -1,0 +1,211 @@
+@using Sudoku.Core
+@using Sudoku.Core.Models
+@using Sudoku.Core.Services
+@implements IDisposable
+
+<div class="wrap" tabindex="0" @onkeydown="OnKey" @ref="_root">
+    <header class="top">
+        <div>
+            <p class="eyebrow">Судоку</p>
+            <h1>@(Game?.Board.Title ?? "Новая партия")</h1>
+        </div>
+        <div class="top-meta">
+            <span class="timer">@FormatElapsed()</span>
+            @if (Game is not null)
+            {
+                <span class="remain">Пустых: @Game.Remaining</span>
+            }
+        </div>
+    </header>
+
+    <section class="picker">
+        @foreach (var info in PuzzleCatalog.All)
+        {
+            <button type="button" class="kind @(Kind == info.Kind ? "active" : null)" @onclick="() => Kind = info.Kind">
+                <span class="badge">@info.Badge</span>
+                <strong>@info.Title</strong>
+                <small>@info.Subtitle</small>
+            </button>
+        }
+    </section>
+
+    <section class="diff">
+        @foreach (var (value, title) in PuzzleCatalog.Difficulties)
+        {
+            <button type="button" class="chip @(Difficulty == value ? "active" : null)" @onclick="() => Difficulty = value">@title</button>
+        }
+        <button type="button" class="go" disabled="@Busy" @onclick="StartNew">Новая игра</button>
+    </section>
+
+    @if (!string.IsNullOrEmpty(Error))
+    {
+        <p class="error">@Error</p>
+    }
+
+    @if (Game is not null)
+    {
+        <div class="stage @(Game.Board.Kind.ToString().ToLowerInvariant()) size-@Game.Board.Size">
+            @if (Game.Board.Kind == PuzzleKind.Star)
+            {
+                <svg class="star-glow" viewBox="0 0 100 100" aria-hidden="true">
+                    <polygon points="50,4 61,35 94,35 67,55 78,88 50,68 22,88 33,55 6,35 39,35" />
+                </svg>
+            }
+            <SudokuBoard Game="Game" OnChanged="Refresh" />
+        </div>
+
+        <div class="pad">
+            <div class="digits">
+                @for (var v = 1; v <= Game.Board.Size; v++)
+                {
+                    var value = v;
+                    <button type="button" class="digit" @onclick="() => Put(value)">@DigitSymbols.Of(value)</button>
+                }
+            </div>
+            <div class="actions">
+                <button type="button" class="@(Game.PencilMode ? "on" : null)" @onclick="TogglePencil">Заметки</button>
+                <button type="button" @onclick="ClearCell">Стереть</button>
+                <button type="button" @onclick="GiveHint">Подсказка</button>
+                <button type="button" @onclick="Check">Проверить</button>
+            </div>
+        </div>
+    }
+
+    @if (Busy)
+    {
+        <div class="overlay"><div class="card">Составляю головоломку…</div></div>
+    }
+
+    @if (Game?.Completed == true)
+    {
+        <div class="overlay win">
+            <div class="card">
+                <p class="eyebrow">Готово</p>
+                <h2>Решено за @FormatElapsed()</h2>
+                <button type="button" class="go" @onclick="StartNew">Ещё партию</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Inject] private SudokuGenerator Generator { get; set; } = default!;
+
+    private ElementReference _root;
+    private Timer? _timer;
+
+    private PuzzleKind Kind { get; set; } = PuzzleKind.Classic9;
+    private Difficulty Difficulty { get; set; } = Difficulty.Easy;
+    private SudokuGame? Game { get; set; }
+    private bool Busy { get; set; }
+    private string? Error { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _timer = new Timer(_ => InvokeAsync(StateHasChanged), null, 1000, 1000);
+        await StartNew();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await _root.FocusAsync();
+    }
+
+    private async Task StartNew()
+    {
+        Error = null;
+        Busy = true;
+        await InvokeAsync(StateHasChanged);
+        await Task.Yield();
+        try
+        {
+            var puzzle = Generator.Generate(Kind, Difficulty);
+            Game = new SudokuGame(puzzle);
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+        finally
+        {
+            Busy = false;
+        }
+    }
+
+    private void Put(int value)
+    {
+        Game?.Place(value);
+        Refresh();
+    }
+
+    private void ClearCell()
+    {
+        Game?.ClearSelected();
+        Refresh();
+    }
+
+    private void TogglePencil()
+    {
+        if (Game is null) return;
+        Game.PencilMode = !Game.PencilMode;
+        Refresh();
+    }
+
+    private void GiveHint()
+    {
+        Game?.Hint();
+        Refresh();
+    }
+
+    private void Check()
+    {
+        Game?.CheckAgainstSolution();
+        Refresh();
+    }
+
+    private void Refresh() => StateHasChanged();
+
+    private void OnKey(KeyboardEventArgs e)
+    {
+        if (Game is null || Busy) return;
+
+        switch (e.Key)
+        {
+            case "ArrowUp": Game.MoveSelection(-1, 0); break;
+            case "ArrowDown": Game.MoveSelection(1, 0); break;
+            case "ArrowLeft": Game.MoveSelection(0, -1); break;
+            case "ArrowRight": Game.MoveSelection(0, 1); break;
+            case "Backspace":
+            case "Delete":
+            case "0":
+                Game.ClearSelected();
+                break;
+            case "n":
+            case "N":
+            case "я":
+                Game.PencilMode = !Game.PencilMode;
+                break;
+            case "h":
+            case "H":
+            case "р":
+                Game.Hint();
+                break;
+            default:
+                var parsed = DigitSymbols.Parse(e.Key, Game.Board.Size);
+                if (parsed > 0)
+                    Game.Place(parsed);
+                break;
+        }
+
+        Refresh();
+    }
+
+    private string FormatElapsed()
+    {
+        var t = Game?.Elapsed ?? TimeSpan.Zero;
+        return $"{(int)t.TotalMinutes:00}:{t.Seconds:00}";
+    }
+
+    public void Dispose() => _timer?.Dispose();
+}
