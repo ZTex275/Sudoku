@@ -68,26 +68,18 @@ public sealed class SudokuGenerator
 
     private GeneratedPuzzle GenerateJigsawOrStar(PuzzleKind kind, Difficulty difficulty, Random rng)
     {
-        for (var attempt = 0; attempt < 2500; attempt++)
+        for (var attempt = 0; attempt < 120; attempt++)
         {
-            var filled = PatternSolution(9, 3, rng);
-            int[] regions;
-            BoardDefinition board;
+            var regions = kind == PuzzleKind.Star
+                ? RegionBuilder.AstraTriangles(rng)
+                : RegionBuilder.Jigsaw(rng);
+            var board = kind == PuzzleKind.Star
+                ? BoardFactory.Star(regions)
+                : BoardFactory.Jigsaw(regions);
 
-            if (kind == PuzzleKind.Star)
-            {
-                if (!RegionBuilder.HasUniqueDigits(filled, BoardFactory.AsteriskCells(9), 9))
-                    continue;
-                regions = RegionBuilder.JigsawFromBoxes(filled, 9, 3, rng, swaps: 48, frozenRegion: 4);
-                board = BoardFactory.Star(regions, includeAsterisk: true);
-            }
-            else
-            {
-                regions = RegionBuilder.JigsawFromBoxes(filled, 9, 3, rng, swaps: 72);
-                board = BoardFactory.Jigsaw(regions);
-            }
-
-            if (!_solver.IsValid(filled, board, allowEmpty: false))
+            var filled = new int[board.CellCount];
+            if (!_solver.Solve(filled, board, rng, nodeLimit: 400_000)
+                || !_solver.IsValid(filled, board, allowEmpty: false))
                 continue;
 
             var givens = DigHoles(filled, board, difficulty, rng);
@@ -100,7 +92,10 @@ public sealed class SudokuGenerator
             };
         }
 
-        throw new InvalidOperationException("Не удалось построить фигурное судоку. Попробуйте ещё раз.");
+        throw new InvalidOperationException(
+            kind == PuzzleKind.Star
+                ? "Не удалось построить судоку-астру. Попробуйте ещё раз."
+                : "Не удалось построить фигурное судоку. Попробуйте ещё раз.");
     }
 
     private int[]? FillEmpty(BoardDefinition board, Random rng)

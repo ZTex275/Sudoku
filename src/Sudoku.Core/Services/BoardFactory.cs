@@ -61,66 +61,20 @@ public static class BoardFactory
         };
     }
 
-    public static BoardDefinition Star(int[] regionOfCell, bool includeAsterisk)
+    public static BoardDefinition Star(int[] regionOfCell)
     {
         var size = 9;
         EnsureRegions(regionOfCell, size);
         var groups = RowColGroups(size);
         groups.AddRange(GroupsFromRegions(regionOfCell, size));
-
-        var starFlags = new bool[size * size];
-        if (includeAsterisk)
-        {
-            var asterisk = AsteriskCells(size);
-            groups.Add(asterisk);
-            foreach (var cell in asterisk)
-                starFlags[cell] = true;
-        }
-
-        foreach (var cell in StarCoreCells(size))
-            starFlags[cell] = true;
-
         return new BoardDefinition
         {
             Kind = PuzzleKind.Star,
-            Title = "Звезда",
+            Title = "Астра",
             Size = size,
             Groups = groups,
-            RegionOfCell = regionOfCell,
-            StarCells = starFlags
+            RegionOfCell = regionOfCell
         };
-    }
-
-    public static int[] StarCoreCells(int size)
-    {
-        if (size != 9)
-            throw new ArgumentOutOfRangeException(nameof(size));
-
-        int I(int r, int c) => r * size + c;
-        return
-        [
-            I(2, 4),
-            I(3, 4),
-            I(4, 2), I(4, 3), I(4, 4), I(4, 5), I(4, 6),
-            I(5, 4),
-            I(6, 4)
-        ];
-    }
-
-    public static int[] AsteriskCells(int size)
-    {
-        if (size != 9)
-            throw new ArgumentOutOfRangeException(nameof(size));
-
-        int I(int r, int c) => r * size + c;
-        return
-        [
-            I(1, 4),
-            I(2, 2), I(2, 6),
-            I(4, 1), I(4, 4), I(4, 7),
-            I(6, 2), I(6, 6),
-            I(7, 4)
-        ];
     }
 
     public static List<int[]> StandardGroups(int size, int boxWidth, int boxHeight)

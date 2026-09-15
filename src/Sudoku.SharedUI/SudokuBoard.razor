@@ -24,10 +24,6 @@
                     }
                 </span>
             }
-            @if (Game.Board.StarCells.Length > cell && Game.Board.StarCells[cell])
-            {
-                <span class="star-dot" aria-hidden="true">★</span>
-            }
         </button>
     }
 </div>
@@ -58,7 +54,6 @@
         if (Game.IsPeer(cell)) cls += " peer";
         if (Game.SameValueAsSelected(cell)) cls += " same";
         if (Game.Board.DiagonalCells.Length > cell && Game.Board.DiagonalCells[cell]) cls += " diag";
-        if (Game.Board.StarCells.Length > cell && Game.Board.StarCells[cell]) cls += " star";
         if (_conflicts.Contains(cell)) cls += " conflict";
         if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
 

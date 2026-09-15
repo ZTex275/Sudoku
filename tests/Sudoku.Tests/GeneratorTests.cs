@@ -26,6 +26,24 @@ public class GeneratorTests
         Assert.Equal(16, grid.Max());
     }
 
+    [Fact]
+    public void JigsawRegions_AreIrregularNotBoxes()
+    {
+        var map = RegionBuilder.Jigsaw(new Random(11));
+        Assert.Equal(81, map.Length);
+        Assert.False(RegionBuilder.IsStandardBoxes(map, 9, 3));
+        Assert.All(Enumerable.Range(0, 9), r => Assert.Equal(9, map.Count(id => id == r)));
+    }
+
+    [Fact]
+    public void AstraRegions_AreTrianglesOfNine()
+    {
+        var map = RegionBuilder.AstraTriangles(new Random(5));
+        Assert.False(RegionBuilder.IsStandardBoxes(map, 9, 3));
+        for (var region = 0; region < 9; region++)
+            Assert.True(RegionBuilder.IsTriangleRegion(map, region, 9), $"region {region}");
+    }
+
     [Theory]
     [InlineData(PuzzleKind.Classic9)]
     [InlineData(PuzzleKind.Diagonal)]
@@ -39,6 +57,13 @@ public class GeneratorTests
         Assert.True(_solver.IsValid(puzzle.Givens, puzzle.Board, allowEmpty: true));
         Assert.True(puzzle.ClueCount < puzzle.Board.CellCount);
         Assert.Equal(1, _solver.CountSolutions(puzzle.Givens, puzzle.Board, limit: 2));
+        if (kind == PuzzleKind.Jigsaw)
+            Assert.False(RegionBuilder.IsStandardBoxes(puzzle.Board.RegionOfCell, 9, 3));
+        if (kind == PuzzleKind.Star)
+        {
+            for (var region = 0; region < 9; region++)
+                Assert.True(RegionBuilder.IsTriangleRegion(puzzle.Board.RegionOfCell, region, 9));
+        }
     }
 
     [Fact]

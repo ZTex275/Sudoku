@@ -9,8 +9,8 @@ public static class PuzzleCatalog
         new(PuzzleKind.Classic9, "Классика 9×9", "Ряды, столбцы и квадраты 3×3", "9×9"),
         new(PuzzleKind.Classic16, "Большое 16×16", "Гексадоку: 1–9 и A–G, квадраты 4×4", "16×16"),
         new(PuzzleKind.Diagonal, "Диагональное", "Судоку-X: обе длинные диагонали без повторов", "X"),
-        new(PuzzleKind.Jigsaw, "Фигурное", "Регионы неправильной формы вместо квадратов", "Jigsaw"),
-        new(PuzzleKind.Star, "Звезда", "Звёздные регионы и дополнительная группа-звезда", "★")
+        new(PuzzleKind.Jigsaw, "Фигурное", "В строке, столбце и фигуре из 9 клеток цифры не повторяются", "Jigsaw"),
+        new(PuzzleKind.Star, "Звезда", "Судоку-астра: треугольные фигуры вместо квадратов", "▲")
     ];
 
     public static IReadOnlyList<(Difficulty Value, string Title)> Difficulties { get; } =
