@@ -93,6 +93,12 @@ public sealed class SudokuGame
             return;
         }
 
+        if (Board.Kind == PuzzleKind.Hoshi)
+        {
+            MoveHoshi(dRow, dCol);
+            return;
+        }
+
         var (row, col) = Board.Coords(Selected);
         row = Math.Clamp(row + dRow, 0, Board.Height - 1);
         if (Board.Kind == PuzzleKind.Star)
@@ -100,6 +106,31 @@ public sealed class SudokuGame
         else
             col = Math.Clamp(col + dCol, 0, Board.Width - 1);
         Selected = Board.Index(row, col);
+    }
+
+    private void MoveHoshi(int dRow, int dCol)
+    {
+        var (cx, cy) = HoshiLayout.Center(Selected);
+        var best = -1;
+        var bestScore = 0.12;
+        foreach (var nb in HoshiLayout.Neighbors(Selected))
+        {
+            var (nx, ny) = HoshiLayout.Center(nb);
+            var dx = nx - cx;
+            var dy = -(ny - cy);
+            var len = Math.Sqrt(dx * dx + dy * dy);
+            if (len < 1e-9)
+                continue;
+            var dot = (dx * dCol + dy * dRow) / len;
+            if (dot > bestScore)
+            {
+                bestScore = dot;
+                best = nb;
+            }
+        }
+
+        if (best >= 0)
+            Selected = best;
     }
 
     public bool Hint()

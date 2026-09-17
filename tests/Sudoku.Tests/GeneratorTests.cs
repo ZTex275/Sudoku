@@ -95,11 +95,29 @@ public class GeneratorTests
         Assert.Equal(1, _solver.CountSolutions(puzzle.Givens, puzzle.Board, limit: 2));
     }
 
+    [Fact]
+    public void HoshiLayout_HasSixTrianglesAndGappedEightCellLines()
+    {
+        var board = BoardFactory.Hoshi();
+        Assert.Equal(PuzzleKind.Hoshi, board.Kind);
+        Assert.Equal(9, board.Size);
+        Assert.Equal(HoshiLayout.Cells, board.CellCount);
+        Assert.Equal(6, Enumerable.Range(0, 6).Count(s => board.RegionOfCell.Count(id => id == s) == 9));
+
+        var eights = board.Groups.Where(g => g.Length == 8).ToList();
+        Assert.Equal(6, eights.Count);
+        Assert.Contains(eights, HoshiLayout.HasCenterGap);
+
+        var nines = board.Groups.Count(g => g.Length == 9);
+        Assert.True(nines >= 12);
+    }
+
     [Theory]
     [InlineData(PuzzleKind.Classic9)]
     [InlineData(PuzzleKind.Diagonal)]
     [InlineData(PuzzleKind.Jigsaw)]
     [InlineData(PuzzleKind.Star)]
+    [InlineData(PuzzleKind.Hoshi)]
     [InlineData(PuzzleKind.Killer)]
     public void Generate_Easy9_HasUniqueSolution(PuzzleKind kind)
     {
@@ -115,6 +133,12 @@ public class GeneratorTests
         {
             Assert.Equal(7, puzzle.Board.Size);
             Assert.Equal(AstraLayout.Cells, puzzle.Board.CellCount);
+        }
+        if (kind == PuzzleKind.Hoshi)
+        {
+            Assert.Equal(9, puzzle.Board.Size);
+            Assert.Equal(HoshiLayout.Cells, puzzle.Board.CellCount);
+            Assert.Contains(puzzle.Board.Groups, g => g.Length == 8);
         }
         if (kind == PuzzleKind.Killer)
         {

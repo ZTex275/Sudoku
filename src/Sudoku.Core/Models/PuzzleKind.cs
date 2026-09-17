@@ -7,5 +7,6 @@ public enum PuzzleKind
     Diagonal,
     Jigsaw,
     Star,
+    Hoshi,
     Killer
 }

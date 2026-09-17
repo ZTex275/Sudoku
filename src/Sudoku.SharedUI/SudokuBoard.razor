@@ -20,6 +20,28 @@
         }
     </svg>
 }
+else if (Game.Board.Kind == PuzzleKind.Hoshi)
+{
+    <svg class="hoshi-board" viewBox="@HoshiLayout.ViewBox" role="grid" aria-label="Звезда">
+        <polygon class="hoshi-hole" points="@HoshiLayout.HolePoints"></polygon>
+        @for (var i = 0; i < Game.Board.CellCount; i++)
+        {
+            var cell = i;
+            var (cx, cy) = HoshiLayout.Center(cell);
+            <g>
+                <polygon class="@HoshiClass(cell)"
+                         points="@HoshiLayout.PolygonPoints(cell)"
+                         role="gridcell"
+                         @onclick="() => Select(cell)"></polygon>
+                @((MarkupString)HoshiLabel(cell, cx, cy))
+            </g>
+        }
+        @for (var s = 0; s < HoshiLayout.Sectors; s++)
+        {
+            <polygon class="hoshi-outline" points="@HoshiLayout.SectorOutline(s)"></polygon>
+        }
+    </svg>
+}
 else
 {
     <div class="board" style="--n: @Game.Board.Size" role="grid" aria-label="Поле судоку">
@@ -117,6 +139,44 @@ else
                 parts.Add(DigitSymbols.Of(v));
         }
         return string.Join(" ", parts);
+    }
+
+    private string HoshiClass(int cell)
+    {
+        var cls = $"hcell hs{HoshiLayout.Sector(cell)}";
+        if (cell == Game.Selected) cls += " selected";
+        if (Game.IsGiven(cell)) cls += " given";
+        if (Game.IsPeer(cell)) cls += " peer";
+        if (Game.SameValueAsSelected(cell)) cls += " same";
+        if (_conflicts.Contains(cell)) cls += " conflict";
+        if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
+        return cls;
+    }
+
+    private string HoshiLabel(int cell, double cx, double cy)
+    {
+        var x = cx.ToString("0.###");
+        var y = (-cy).ToString("0.###");
+        if (Game.Current[cell] != 0)
+        {
+            var value = DigitSymbols.Of(Game.Current[cell]);
+            return $"<text class=\"{HoshiTextClass(cell)}\" x=\"{x}\" y=\"{y}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"0.38\">{value}</text>";
+        }
+
+        if (Game.Notes[cell] != 0)
+            return $"<text class=\"hnotes\" x=\"{x}\" y=\"{y}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"0.16\">{AstraNotes(cell)}</text>";
+
+        return string.Empty;
+    }
+
+    private string HoshiTextClass(int cell)
+    {
+        var cls = "hval";
+        if (Game.IsGiven(cell)) cls += " given";
+        if (Game.SameValueAsSelected(cell)) cls += " same";
+        if (_conflicts.Contains(cell)) cls += " conflict";
+        if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
+        return cls;
     }
 
     private string CellClass(int cell, int row, int col, int region)

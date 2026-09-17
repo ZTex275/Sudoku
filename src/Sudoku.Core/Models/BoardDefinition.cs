@@ -16,7 +16,7 @@ public sealed class BoardDefinition
     public bool[] StarCells { get; init; } = Array.Empty<bool>();
     public int Width => Stride > 0 ? Stride : Size;
     public int Height => Size;
-    public int CellCount => Width * Height;
+    public int CellCount => RegionOfCell.Length;
 
     public int Index(int row, int col) => row * Width + col;
 

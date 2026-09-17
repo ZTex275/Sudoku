@@ -78,6 +78,22 @@ public static class BoardFactory
         };
     }
 
+    public static BoardDefinition Hoshi()
+    {
+        var regions = new int[HoshiLayout.Cells];
+        for (var i = 0; i < regions.Length; i++)
+            regions[i] = HoshiLayout.Sector(i);
+
+        return new BoardDefinition
+        {
+            Kind = PuzzleKind.Hoshi,
+            Title = "Звезда",
+            Size = HoshiLayout.Digits,
+            Groups = HoshiLayout.AllGroups(),
+            RegionOfCell = regions
+        };
+    }
+
     public static BoardDefinition Killer(IReadOnlyList<Cage> cages)
     {
         var size = 9;

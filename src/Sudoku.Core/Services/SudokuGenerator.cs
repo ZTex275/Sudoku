@@ -16,6 +16,7 @@ public sealed class SudokuGenerator
             PuzzleKind.Diagonal => GenerateConstrained9(PuzzleKind.Diagonal, difficulty, rng),
             PuzzleKind.Jigsaw => GenerateJigsaw(difficulty, rng),
             PuzzleKind.Star => GenerateAstra(difficulty, rng),
+            PuzzleKind.Hoshi => GenerateHoshi(difficulty, rng),
             PuzzleKind.Killer => GenerateKiller(difficulty, rng),
             _ => throw new ArgumentOutOfRangeException(nameof(kind))
         };
@@ -73,6 +74,30 @@ public sealed class SudokuGenerator
         var solution = AstraLayout.PatternSolution(rng);
         if (!_solver.IsValid(solution, board, allowEmpty: false))
             throw new InvalidOperationException("Не удалось построить судоку-астру.");
+
+        var givens = DigHoles(solution, board, difficulty, rng);
+        return new GeneratedPuzzle
+        {
+            Board = board,
+            Difficulty = difficulty,
+            Givens = givens,
+            Solution = solution
+        };
+    }
+
+    private GeneratedPuzzle GenerateHoshi(Difficulty difficulty, Random rng)
+    {
+        var board = BoardFactory.Hoshi();
+        int[]? solution = null;
+        for (var attempt = 0; attempt < 40; attempt++)
+        {
+            solution = FillEmpty(board, rng);
+            if (solution is not null)
+                break;
+        }
+
+        if (solution is null)
+            throw new InvalidOperationException("Не удалось построить судоку-звезду.");
 
         var givens = DigHoles(solution, board, difficulty, rng);
         return new GeneratedPuzzle
@@ -341,6 +366,17 @@ public sealed class SudokuGenerator
                 Difficulty.Medium => 40,
                 Difficulty.Hard => 32,
                 _ => 24
+            };
+        }
+
+        if (board.Kind == PuzzleKind.Hoshi)
+        {
+            return difficulty switch
+            {
+                Difficulty.Easy => 28,
+                Difficulty.Medium => 22,
+                Difficulty.Hard => 16,
+                _ => 12
             };
         }
 
