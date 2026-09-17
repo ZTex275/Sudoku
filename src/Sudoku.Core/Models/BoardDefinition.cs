@@ -10,6 +10,8 @@ public sealed class BoardDefinition
     public int BoxHeight { get; init; }
     public required IReadOnlyList<int[]> Groups { get; init; }
     public required int[] RegionOfCell { get; init; }
+    public IReadOnlyList<Cage> Cages { get; init; } = Array.Empty<Cage>();
+    public int[] CageId { get; init; } = Array.Empty<int>();
     public bool[] DiagonalCells { get; init; } = Array.Empty<bool>();
     public bool[] StarCells { get; init; } = Array.Empty<bool>();
     public int Width => Stride > 0 ? Stride : Size;

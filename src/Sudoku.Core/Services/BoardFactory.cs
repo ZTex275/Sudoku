@@ -78,6 +78,44 @@ public static class BoardFactory
         };
     }
 
+    public static BoardDefinition Killer(IReadOnlyList<Cage> cages)
+    {
+        var size = 9;
+        var n = size * size;
+        if (!CageBuilder.CoversBoard(cages, n))
+            throw new ArgumentException("Контуры киллера должны покрывать всё поле без пересечений.");
+
+        var cageId = new int[n];
+        var normalized = new Cage[cages.Count];
+        for (var i = 0; i < cages.Count; i++)
+        {
+            var cells = cages[i].Cells;
+            foreach (var cell in cells)
+                cageId[cell] = i;
+            normalized[i] = new Cage { Id = i, Cells = cells, Sum = cages[i].Sum };
+        }
+
+        var groups = StandardGroups(size, 3, 3);
+        foreach (var cage in normalized)
+        {
+            if (cage.Cells.Length > 1)
+                groups.Add(cage.Cells);
+        }
+
+        return new BoardDefinition
+        {
+            Kind = PuzzleKind.Killer,
+            Title = "Киллер",
+            Size = size,
+            BoxWidth = 3,
+            BoxHeight = 3,
+            Groups = groups,
+            RegionOfCell = BoxRegions(size, 3, 3),
+            Cages = normalized,
+            CageId = cageId
+        };
+    }
+
     public static List<int[]> StandardGroups(int size, int boxWidth, int boxHeight)
     {
         var groups = RowColGroups(size);

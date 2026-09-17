@@ -68,11 +68,39 @@ public class GeneratorTests
         }
     }
 
+    [Fact]
+    public void KillerCages_CoverBoardAndMatchSolutionSums()
+    {
+        var solution = SudokuGenerator.PatternSolution(9, 3, new Random(5));
+        var cages = CageBuilder.Partition(solution, 9, new Random(5), 4, preferSingles: true);
+        Assert.True(CageBuilder.CoversBoard(cages, 81));
+        var board = BoardFactory.Killer(cages);
+        Assert.Equal(PuzzleKind.Killer, board.Kind);
+        Assert.True(_solver.IsValid(solution, board, allowEmpty: false));
+        Assert.All(cages, cage =>
+        {
+            Assert.Equal(cage.Sum, cage.Cells.Sum(i => solution[i]));
+            Assert.Equal(cage.Cells.Length, cage.Cells.Select(i => solution[i]).Distinct().Count());
+        });
+    }
+
+    [Theory]
+    [InlineData(Difficulty.Medium)]
+    [InlineData(Difficulty.Hard)]
+    public void Generate_Killer_WithoutGivens_IsUnique(Difficulty difficulty)
+    {
+        var puzzle = _generator.Generate(PuzzleKind.Killer, difficulty, seed: 21);
+        Assert.Equal(0, puzzle.ClueCount);
+        Assert.True(CageBuilder.CoversBoard(puzzle.Board.Cages, 81));
+        Assert.Equal(1, _solver.CountSolutions(puzzle.Givens, puzzle.Board, limit: 2));
+    }
+
     [Theory]
     [InlineData(PuzzleKind.Classic9)]
     [InlineData(PuzzleKind.Diagonal)]
     [InlineData(PuzzleKind.Jigsaw)]
     [InlineData(PuzzleKind.Star)]
+    [InlineData(PuzzleKind.Killer)]
     public void Generate_Easy9_HasUniqueSolution(PuzzleKind kind)
     {
         var puzzle = _generator.Generate(kind, Difficulty.Easy, seed: 42);
@@ -87,6 +115,17 @@ public class GeneratorTests
         {
             Assert.Equal(7, puzzle.Board.Size);
             Assert.Equal(AstraLayout.Cells, puzzle.Board.CellCount);
+        }
+        if (kind == PuzzleKind.Killer)
+        {
+            Assert.NotEmpty(puzzle.Board.Cages);
+            Assert.True(CageBuilder.CoversBoard(puzzle.Board.Cages, 81));
+            Assert.Equal(0, puzzle.ClueCount);
+            Assert.All(puzzle.Board.Cages, cage =>
+            {
+                Assert.Equal(cage.Sum, cage.Cells.Sum(i => puzzle.Solution[i]));
+                Assert.Equal(cage.Cells.Length, cage.Cells.Select(i => puzzle.Solution[i]).Distinct().Count());
+            });
         }
     }
 

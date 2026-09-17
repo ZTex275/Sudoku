@@ -240,6 +240,40 @@ h1, h2 {
 .cell.box-w::after { border-left-width: 2px; }
 .cell.edge-e::after { border-right-width: 2px; }
 
+.stage.killer .cell.cage-n::before,
+.stage.killer .cell.cage-s::before,
+.stage.killer .cell.cage-w::before,
+.stage.killer .cell.cage-e::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    pointer-events: none;
+    border-style: dotted;
+    border-color: #314047;
+    border-width: 0;
+}
+
+.stage.killer .cell.cage-n::before { border-top-width: 2px; }
+.stage.killer .cell.cage-s::before { border-bottom-width: 2px; }
+.stage.killer .cell.cage-w::before { border-left-width: 2px; }
+.stage.killer .cell.cage-e::before { border-right-width: 2px; }
+
+.cage-sum {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    z-index: 3;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    color: #4a5961;
+    pointer-events: none;
+}
+
+.stage.killer .cell .val {
+    transform: translateY(3px);
+}
+
 .r0 { background-color: rgba(217, 164, 65, 0.08); }
 .r1 { background-color: rgba(125, 202, 165, 0.10); }
 .r2 { background-color: rgba(110, 158, 201, 0.10); }

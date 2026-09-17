@@ -6,5 +6,6 @@ public enum PuzzleKind
     Classic16,
     Diagonal,
     Jigsaw,
-    Star
+    Star,
+    Killer
 }

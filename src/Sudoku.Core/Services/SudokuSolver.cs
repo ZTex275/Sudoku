@@ -57,6 +57,41 @@ public sealed class SudokuSolver
             }
         }
 
+        foreach (var cage in board.Cages)
+        {
+            var seen = 0;
+            var sum = 0;
+            var filled = 0;
+            foreach (var cell in cage.Cells)
+            {
+                var value = grid[cell];
+                if (value == 0)
+                {
+                    if (!allowEmpty)
+                        return false;
+                    continue;
+                }
+
+                if (value < 1 || value > board.Size)
+                    return false;
+
+                var bit = 1 << (value - 1);
+                if ((seen & bit) != 0)
+                    return false;
+                seen |= bit;
+                sum += value;
+                filled++;
+            }
+
+            if (filled == cage.Cells.Length)
+            {
+                if (sum != cage.Sum)
+                    return false;
+            }
+            else if (sum >= cage.Sum)
+                return false;
+        }
+
         return true;
     }
 
@@ -77,6 +112,36 @@ public sealed class SudokuSolver
             {
                 var value = grid[cell];
                 if (value > 0 && counts[value] > 1)
+                    bad[cell] = true;
+            }
+        }
+
+        foreach (var cage in board.Cages)
+        {
+            var seen = 0;
+            var sum = 0;
+            var filled = 0;
+            var duplicate = false;
+            foreach (var cell in cage.Cells)
+            {
+                var value = grid[cell];
+                if (value == 0)
+                    continue;
+                var bit = 1 << (value - 1);
+                if ((seen & bit) != 0)
+                    duplicate = true;
+                seen |= bit;
+                sum += value;
+                filled++;
+            }
+
+            var over = filled == cage.Cells.Length ? sum != cage.Sum : sum >= cage.Sum;
+            if (!duplicate && !over)
+                continue;
+
+            foreach (var cell in cage.Cells)
+            {
+                if (grid[cell] != 0)
                     bad[cell] = true;
             }
         }
@@ -154,6 +219,11 @@ public sealed class SudokuSolver
         public required int[] Grid { get; init; }
         public required int[] GroupUsed { get; init; }
         public required int[][] CellGroups { get; init; }
+        public required int[] CageOfCell { get; init; }
+        public required int[] CageTarget { get; init; }
+        public required int[] CageSum { get; init; }
+        public required int[] CageEmpty { get; init; }
+        public required int[] CageUsed { get; init; }
         public int Solutions { get; set; }
 
         public static SolverState? Create(BoardDefinition board, int[] grid)
@@ -171,12 +241,33 @@ public sealed class SudokuSolver
             for (var i = 0; i < board.CellCount; i++)
                 cellGroups[i] = tmp[i].ToArray();
 
+            var cageCount = board.Cages.Count;
+            var cageOfCell = new int[board.CellCount];
+            Array.Fill(cageOfCell, -1);
+            var cageTarget = new int[cageCount];
+            var cageSum = new int[cageCount];
+            var cageEmpty = new int[cageCount];
+            var cageUsed = new int[cageCount];
+            for (var i = 0; i < cageCount; i++)
+            {
+                var cage = board.Cages[i];
+                cageTarget[i] = cage.Sum;
+                cageEmpty[i] = cage.Cells.Length;
+                foreach (var cell in cage.Cells)
+                    cageOfCell[cell] = i;
+            }
+
             var state = new SolverState
             {
                 Size = board.Size,
                 Grid = grid,
                 GroupUsed = groupUsed,
-                CellGroups = cellGroups
+                CellGroups = cellGroups,
+                CageOfCell = cageOfCell,
+                CageTarget = cageTarget,
+                CageSum = cageSum,
+                CageEmpty = cageEmpty,
+                CageUsed = cageUsed
             };
 
             for (var i = 0; i < grid.Length; i++)
@@ -202,7 +293,30 @@ public sealed class SudokuSolver
             var mask = all;
             foreach (var g in CellGroups[cell])
                 mask &= ~GroupUsed[g];
-            return mask;
+
+            var cage = CageOfCell[cell];
+            if (cage < 0 || mask == 0)
+                return mask;
+
+            mask &= ~CageUsed[cage];
+            var remainingEmpty = CageEmpty[cage];
+            var remainingSum = CageTarget[cage] - CageSum[cage];
+            if (remainingEmpty == 1)
+            {
+                if (remainingSum < 1 || remainingSum > Size)
+                    return 0;
+                return mask & (1 << (remainingSum - 1));
+            }
+
+            var filtered = 0;
+            for (var bit = mask; bit != 0; bit &= bit - 1)
+            {
+                var value = BitOperationsTrailingZero(bit) + 1;
+                if (CageAllows(cage, value, remainingSum, remainingEmpty))
+                    filtered |= 1 << (value - 1);
+            }
+
+            return filtered;
         }
 
         public int PickMrv()
@@ -236,8 +350,24 @@ public sealed class SudokuSolver
                     return false;
             }
 
+            var cage = CageOfCell[cell];
+            if (cage >= 0)
+            {
+                if ((CageUsed[cage] & bit) != 0)
+                    return false;
+                if (!CageAllows(cage, value, CageTarget[cage] - CageSum[cage], CageEmpty[cage]))
+                    return false;
+            }
+
             foreach (var g in CellGroups[cell])
                 GroupUsed[g] |= bit;
+
+            if (cage >= 0)
+            {
+                CageUsed[cage] |= bit;
+                CageSum[cage] += value;
+                CageEmpty[cage]--;
+            }
 
             if (writingGrid)
                 Grid[cell] = value;
@@ -249,7 +379,57 @@ public sealed class SudokuSolver
             var bit = 1 << (value - 1);
             foreach (var g in CellGroups[cell])
                 GroupUsed[g] &= ~bit;
+
+            var cage = CageOfCell[cell];
+            if (cage >= 0)
+            {
+                CageUsed[cage] &= ~bit;
+                CageSum[cage] -= value;
+                CageEmpty[cage]++;
+            }
+
             Grid[cell] = 0;
+        }
+
+        private bool CageAllows(int cage, int value, int remainingSum, int remainingEmpty)
+        {
+            var nextSum = remainingSum - value;
+            var nextEmpty = remainingEmpty - 1;
+            if (nextEmpty == 0)
+                return nextSum == 0;
+            if (nextSum <= 0)
+                return false;
+
+            var used = CageUsed[cage] | (1 << (value - 1));
+            var (min, max) = RangeUnused(used, nextEmpty, Size);
+            return nextSum >= min && nextSum <= max;
+        }
+
+        private static (int Min, int Max) RangeUnused(int usedMask, int count, int size)
+        {
+            var min = 0;
+            var max = 0;
+            var takenMin = 0;
+            var takenMax = 0;
+            for (var value = 1; value <= size && takenMin < count; value++)
+            {
+                if ((usedMask & (1 << (value - 1))) != 0)
+                    continue;
+                min += value;
+                takenMin++;
+            }
+
+            for (var value = size; value >= 1 && takenMax < count; value--)
+            {
+                if ((usedMask & (1 << (value - 1))) != 0)
+                    continue;
+                max += value;
+                takenMax++;
+            }
+
+            if (takenMin < count)
+                return (1, 0);
+            return (min, max);
         }
     }
 }

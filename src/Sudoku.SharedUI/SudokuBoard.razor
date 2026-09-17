@@ -32,6 +32,10 @@ else
                     class="@CellClass(cell, row, col, region)"
                     role="gridcell"
                     @onclick="() => Select(cell)">
+                @if (CageSumAt(cell) is { } sum)
+                {
+                    <span class="cage-sum">@sum</span>
+                }
                 @if (Game.Current[cell] != 0)
                 {
                     <span class="val">@DigitSymbols.Of(Game.Current[cell])</span>
@@ -143,7 +147,32 @@ else
             if (row % Game.Board.BoxHeight == 0) cls += " box-n";
         }
 
+        if (Game.Board.Cages.Count > 0)
+        {
+            var cage = CageIdAt(row, col);
+            if (row == 0 || CageIdAt(row - 1, col) != cage) cls += " cage-n";
+            if (col == 0 || CageIdAt(row, col - 1) != cage) cls += " cage-w";
+            if (row == size - 1 || CageIdAt(row + 1, col) != cage) cls += " cage-s";
+            if (col == size - 1 || CageIdAt(row, col + 1) != cage) cls += " cage-e";
+        }
+
         return cls;
+    }
+
+    private int? CageSumAt(int cell)
+    {
+        if (Game.Board.Cages.Count == 0 || Game.Board.CageId.Length <= cell)
+            return null;
+        var cage = Game.Board.Cages[Game.Board.CageId[cell]];
+        return cage.Anchor == cell ? cage.Sum : null;
+    }
+
+    private int CageIdAt(int row, int col)
+    {
+        if (row < 0 || col < 0 || row >= Game.Board.Size || col >= Game.Board.Size)
+            return -1;
+        var cell = Game.Board.Index(row, col);
+        return Game.Board.CageId.Length > cell ? Game.Board.CageId[cell] : -1;
     }
 
     private int RegionAt(int row, int col)
