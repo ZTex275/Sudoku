@@ -36,19 +36,35 @@ public class GeneratorTests
     }
 
     [Fact]
-    public void AstraLayout_Pattern_HasUniqueDigitsInPyramidsAndLines()
+    public void AstraLayout_Pattern_HasUniqueDigitsOnAdjacentStrips()
     {
         var board = BoardFactory.Astra();
         Assert.Equal(7, board.Size);
         Assert.Equal(AstraLayout.Cells, board.CellCount);
+        Assert.Equal(AstraLayout.Sectors * 2, board.Groups.Count);
         Assert.All(board.Groups, g => Assert.Equal(7, g.Length));
 
-        var grid = AstraLayout.PatternSolution(new Random(5));
-        Assert.True(_solver.IsValid(grid, board, allowEmpty: false));
-        for (var sector = 0; sector < AstraLayout.Sectors; sector++)
+        for (var seed = 0; seed < 12; seed++)
         {
-            var pyramid = Enumerable.Range(0, 7).Select(r => grid[AstraLayout.Index(r, sector)]);
-            Assert.Equal(7, pyramid.Distinct().Count());
+            var grid = AstraLayout.PatternSolution(new Random(seed));
+            Assert.True(_solver.IsValid(grid, board, allowEmpty: false));
+            for (var s = 0; s < AstraLayout.Sectors; s++)
+            {
+                var cw = Enumerable.Range(0, 7).Select(r => grid[AstraLayout.Index(r, s + r / 2)]);
+                var ccw = Enumerable.Range(0, 7).Select(r => grid[AstraLayout.Index(r, s - (r + 1) / 2)]);
+                Assert.Equal(7, cw.Distinct().Count());
+                Assert.Equal(7, ccw.Distinct().Count());
+            }
+
+            for (var r = 0; r < AstraLayout.Rings; r++)
+            {
+                for (var s = 0; s < AstraLayout.Sectors; s++)
+                {
+                    var value = grid[AstraLayout.Index(r, s)];
+                    foreach (var (nr, ns) in AstraLayout.Neighbors(r, s))
+                        Assert.NotEqual(value, grid[AstraLayout.Index(nr, ns)]);
+                }
+            }
         }
     }
 

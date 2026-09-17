@@ -200,34 +200,6 @@ h1, h2 {
     z-index: 1;
 }
 
-.stage.diagonal::before,
-.stage.diagonal::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 2;
-    background: linear-gradient(
-        to bottom right,
-        transparent calc(50% - 3.5px),
-        #9a6408 calc(50% - 3.5px),
-        #f0c56a calc(50%),
-        #9a6408 calc(50% + 3.5px),
-        transparent calc(50% + 3.5px)
-    );
-}
-
-.stage.diagonal::after {
-    background: linear-gradient(
-        to bottom left,
-        transparent calc(50% - 3.5px),
-        #9a6408 calc(50% - 3.5px),
-        #f0c56a calc(50%),
-        #9a6408 calc(50% + 3.5px),
-        transparent calc(50% + 3.5px)
-    );
-}
-
 .cell.conflict, .cell.wrong {
     background: rgba(214, 48, 36, 0.62);
 }
@@ -254,11 +226,11 @@ h1, h2 {
 .r8 { background-color: rgba(210, 140, 140, 0.10); }
 
 .stage.diagonal .cell.diag {
-    background-color: rgba(217, 164, 65, 0.28);
+    background-color: rgba(236, 178, 58, 0.62);
 }
 
 .stage.diagonal .cell.diag-both {
-    background-color: rgba(217, 164, 65, 0.42);
+    background-color: rgba(242, 196, 72, 0.82);
 }
 
 .stage.diagonal .cell.same {

@@ -23,20 +23,17 @@ public static class AstraLayout
 
     public static List<int[]> AllGroups()
     {
-        var groups = new List<int[]>(Sectors * 3);
+        var groups = new List<int[]>(Sectors * 2);
         for (var s = 0; s < Sectors; s++)
         {
-            var pyramid = new int[Rings];
             var cw = new int[Rings];
             var ccw = new int[Rings];
             for (var r = 0; r < Rings; r++)
             {
-                pyramid[r] = Index(r, s);
-                cw[r] = Index(r, s + r);
-                ccw[r] = Index(r, s - r);
+                cw[r] = Index(r, s + r / 2);
+                ccw[r] = Index(r, s - (r + 1) / 2);
             }
 
-            groups.Add(pyramid);
             groups.Add(cw);
             groups.Add(ccw);
         }
@@ -48,14 +45,12 @@ public static class AstraLayout
     {
         var grid = new int[Cells];
         var rot = rng.Next(Sectors);
-        var flip = rng.Next(2) == 0 ? 1 : -1;
         var map = Enumerable.Range(1, Rings).OrderBy(_ => rng.Next()).ToArray();
         for (var r = 0; r < Rings; r++)
         {
             for (var s = 0; s < Sectors; s++)
             {
-                var column = flip * s + rot;
-                var value = Mod(2 * r + column, Rings);
+                var value = Mod(r + s + rot + 4 * (r % 2), Rings);
                 grid[Index(r, s)] = map[value];
             }
         }

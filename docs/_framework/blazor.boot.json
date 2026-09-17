@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "Sudoku.Web",
   "resources": {
-    "hash": "sha256-gAbxe2dQXkq+r1x9ptk+l959aXtilPTyCKEJ84TR514=",
+    "hash": "sha256-wWs7EtjvxpeFvZ+CD63om9nCmgnLd361COJoYJDGjs4=",
     "jsModuleNative": {
       "dotnet.native.8.0.30.ltdg3tpnas.js": "sha256-dexsp+9ih2C28zVhNnPXUbkz2QCq7lHpkyDcmaLl7NQ="
     },
@@ -26,9 +26,9 @@
       "Microsoft.Extensions.Primitives.wasm": "sha256-6187ynEahDlSLMBvD4vAmiLpZ3clRb5xu6rM7O8AxNo=",
       "Microsoft.JSInterop.wasm": "sha256-m8HSFXr/xs0H0tzrFxpE88TXHxDfR6wN+Rp6z3npXHw=",
       "Microsoft.JSInterop.WebAssembly.wasm": "sha256-haO0j1Scd25k71V3+oHgCTwEx2GPGs39yGGx0nmSxIQ=",
-      "Sudoku.Core.wasm": "sha256-Ybug3KkIycq3LZ36yIy4FvMm1aTQPQ4Ie8QuSgeaXo4=",
-      "Sudoku.SharedUI.wasm": "sha256-AQXuQ47RoJkS7+aii1sCwZruGPpoaDTW/v/GPmzqXdg=",
-      "Sudoku.Web.wasm": "sha256-9QkpaFGzm18gPBovLEy6Qg0kpteGhBzbqmKep2jgxO8=",
+      "Sudoku.Core.wasm": "sha256-uXGTrIqgcL1dTQUohj5xHPibr/0OSDW55Ml8j79xKF4=",
+      "Sudoku.SharedUI.wasm": "sha256-YEPWOBwf8SezegSF172wZUduOnul6rqdb6HhVlkcEdc=",
+      "Sudoku.Web.wasm": "sha256-x6MN6hryNI5Bs5hWPT3cqeboL1w/TcsJWFB5L5tMb9U=",
       "System.Collections.Concurrent.wasm": "sha256-UpH/cON/JrABlUDyaq34MJdevNo+GcTo4t93kv9G1WA=",
       "System.Collections.wasm": "sha256-klnwGM59NGxPua+H+MdMUShHAhpKSpIYxSgniYS1Td4=",
       "System.ComponentModel.wasm": "sha256-gr1bMtvsV0b8hWhKYos+74JLu9O6zG/7taOD78q4uys=",
