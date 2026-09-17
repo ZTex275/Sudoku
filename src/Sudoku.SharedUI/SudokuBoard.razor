@@ -100,6 +100,8 @@ else
         var cls = "aval";
         if (Game.IsGiven(cell)) cls += " given";
         if (Game.SameValueAsSelected(cell)) cls += " same";
+        if (_conflicts.Contains(cell)) cls += " conflict";
+        if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
         return cls;
     }
 
@@ -122,8 +124,6 @@ else
         if (Game.IsGiven(cell)) cls += " given";
         if (Game.IsPeer(cell)) cls += " peer";
         if (Game.SameValueAsSelected(cell)) cls += " same";
-        if (Game.Board.Kind == PuzzleKind.Diagonal && Game.Board.DiagonalCells.Length > cell && Game.Board.DiagonalCells[cell])
-            cls += " diag";
         if (_conflicts.Contains(cell)) cls += " conflict";
         if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
 

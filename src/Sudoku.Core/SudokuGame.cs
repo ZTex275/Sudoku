@@ -6,6 +6,7 @@ namespace Sudoku.Core;
 public sealed class SudokuGame
 {
     private readonly SudokuSolver _solver = new();
+    private readonly Stack<Move> _undo = new();
     private DateTime _startedUtc;
     private TimeSpan _frozenElapsed;
 
@@ -31,6 +32,7 @@ public sealed class SudokuGame
     public bool PencilMode { get; set; }
     public bool Completed { get; private set; }
     public bool ShowMistakes { get; private set; }
+    public bool CanUndo => _undo.Count > 0;
 
     public TimeSpan Elapsed => Completed ? _frozenElapsed : DateTime.UtcNow - _startedUtc;
 
@@ -46,6 +48,7 @@ public sealed class SudokuGame
         if (value < 1 || value > Board.Size)
             return;
 
+        PushUndo(Selected);
         ShowMistakes = false;
         if (PencilMode)
         {
@@ -56,7 +59,6 @@ public sealed class SudokuGame
 
         Current[Selected] = Current[Selected] == value ? 0 : value;
         Notes[Selected] = 0;
-        ClearNoteFromPeers(Selected, value);
         CheckCompletion();
     }
 
@@ -64,9 +66,23 @@ public sealed class SudokuGame
     {
         if (Completed || Selected < 0 || IsGiven(Selected))
             return;
+        PushUndo(Selected);
         Current[Selected] = 0;
         Notes[Selected] = 0;
         ShowMistakes = false;
+    }
+
+    public void Undo()
+    {
+        if (_undo.Count == 0)
+            return;
+
+        var move = _undo.Pop();
+        Current[move.Cell] = move.Value;
+        Notes[move.Cell] = move.Notes;
+        Selected = move.Cell;
+        ShowMistakes = false;
+        Completed = false;
     }
 
     public void MoveSelection(int dRow, int dCol)
@@ -100,6 +116,7 @@ public sealed class SudokuGame
         var cell = empties[Random.Shared.Next(empties.Count)];
         Selected = cell;
         PencilMode = false;
+        PushUndo(cell);
         Current[cell] = Solution[cell];
         Notes[cell] = 0;
         CheckCompletion();
@@ -126,17 +143,10 @@ public sealed class SudokuGame
     public bool SameValueAsSelected(int cell) =>
         Selected >= 0 && Current[cell] != 0 && Current[cell] == Current[Selected];
 
-    private void ClearNoteFromPeers(int cell, int value)
-    {
-        var bit = 1UL << value;
-        for (var i = 0; i < Board.CellCount; i++)
-        {
-            if (i == cell)
-                continue;
-            if (Board.ArePeers(cell, i))
-                Notes[i] &= ~bit;
-        }
-    }
+    private void PushUndo(int cell) =>
+        _undo.Push(new Move(cell, Current[cell], Notes[cell]));
+
+    private readonly record struct Move(int Cell, int Value, ulong Notes);
 
     private void CheckCompletion()
     {

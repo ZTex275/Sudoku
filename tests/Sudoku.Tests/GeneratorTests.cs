@@ -95,4 +95,37 @@ public class GeneratorTests
         Assert.NotEmpty(filled);
         Assert.All(filled, i => Assert.Equal(game.Solution[i], game.Current[i]));
     }
+
+    [Fact]
+    public void Game_NotesStayWhenPeerDigitIsEntered()
+    {
+        var puzzle = _generator.Generate(PuzzleKind.Classic9, Difficulty.Easy, seed: 3);
+        var game = new SudokuGame(puzzle);
+        var empty = Enumerable.Range(0, game.Board.CellCount).Where(i => game.Givens[i] == 0).ToList();
+        var a = empty[0];
+        var b = empty.First(i => i != a && game.Board.ArePeers(a, i));
+        game.Selected = a;
+        game.PencilMode = true;
+        game.Place(5);
+        Assert.NotEqual(0UL, game.Notes[a] & (1UL << 5));
+        game.Selected = b;
+        game.PencilMode = false;
+        game.Place(5);
+        Assert.NotEqual(0UL, game.Notes[a] & (1UL << 5));
+    }
+
+    [Fact]
+    public void Game_UndoRestoresLastMove()
+    {
+        var puzzle = _generator.Generate(PuzzleKind.Classic9, Difficulty.Easy, seed: 3);
+        var game = new SudokuGame(puzzle);
+        var cell = Enumerable.Range(0, game.Board.CellCount).First(i => game.Givens[i] == 0);
+        game.Selected = cell;
+        game.Place(4);
+        Assert.Equal(4, game.Current[cell]);
+        Assert.True(game.CanUndo);
+        game.Undo();
+        Assert.Equal(0, game.Current[cell]);
+        Assert.False(game.CanUndo);
+    }
 }

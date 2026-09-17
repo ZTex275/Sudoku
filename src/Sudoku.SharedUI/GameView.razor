@@ -47,6 +47,7 @@
             </div>
             <div class="actions">
                 <button type="button" class="@(Game.PencilMode ? "on" : null)" @onclick="TogglePencil">Заметки</button>
+                <button type="button" @onclick="UndoMove" disabled="@(!Game.CanUndo)">Отмена</button>
                 <button type="button" @onclick="ClearCell">Стереть</button>
                 <button type="button" @onclick="GiveHint">Подсказка</button>
                 <button type="button" @onclick="Check">Проверить</button>
@@ -153,6 +154,12 @@
         Refresh();
     }
 
+    private void UndoMove()
+    {
+        Game?.Undo();
+        Refresh();
+    }
+
     private void TogglePencil()
     {
         if (Game is null) return;
@@ -184,6 +191,12 @@
             case "ArrowDown": Game.MoveSelection(1, 0); break;
             case "ArrowLeft": Game.MoveSelection(0, -1); break;
             case "ArrowRight": Game.MoveSelection(0, 1); break;
+            case "z":
+            case "Z":
+            case "я":
+            case "Я":
+                Game.Undo();
+                break;
             case "Backspace":
             case "Delete":
             case "0":
@@ -191,7 +204,8 @@
                 break;
             case "n":
             case "N":
-            case "я":
+            case "т":
+            case "Т":
                 Game.PencilMode = !Game.PencilMode;
                 break;
             case "h":

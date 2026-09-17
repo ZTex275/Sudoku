@@ -121,6 +121,11 @@ h1, h2 {
     cursor: wait;
 }
 
+.actions button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
 .error {
     color: var(--rose);
 }
@@ -179,11 +184,15 @@ h1, h2 {
 }
 
 .cell.peer {
-    background: rgba(16, 33, 43, 0.06);
+    background: rgba(90, 150, 190, 0.28);
+}
+
+.cell.same {
+    background: rgba(46, 160, 110, 0.42);
 }
 
 .cell.same .val {
-    color: #8a4b12;
+    color: #0b3d2c;
 }
 
 .cell.selected {
@@ -192,7 +201,11 @@ h1, h2 {
 }
 
 .cell.conflict, .cell.wrong {
-    background: rgba(224, 122, 106, 0.28);
+    background: rgba(214, 48, 36, 0.62);
+}
+
+.cell.conflict .val, .cell.wrong .val {
+    color: #6a0b0b;
 }
 
 .cell.edge-n { border-top: 2px solid var(--thick); }
@@ -212,14 +225,6 @@ h1, h2 {
 .r7 { background-color: rgba(120, 170, 190, 0.10); }
 .r8 { background-color: rgba(210, 140, 140, 0.10); }
 
-.stage.diagonal .cell.diag {
-    background-color: rgba(217, 164, 65, 0.22);
-}
-
-.stage.diagonal .cell.selected {
-    background-color: rgba(217, 164, 65, 0.46);
-}
-
 .stage.star {
     width: min(100%, 620px);
 }
@@ -238,9 +243,10 @@ h1, h2 {
 
 .acell.chk0 { fill: #f7f1e6; }
 .acell.chk1 { fill: #efcfc4; }
-.acell.peer { fill: #d9e4d6; }
+.acell.peer { fill: #9ec9b8; }
+.acell.same { fill: #5fbf8f; }
 .acell.selected { fill: #e8c36a; }
-.acell.conflict, .acell.wrong { fill: #e7a599; }
+.acell.conflict, .acell.wrong { fill: #dd3a30; }
 
 .aval, .anotes {
     pointer-events: none;
@@ -255,7 +261,8 @@ h1, h2 {
 }
 
 .aval.given { fill: #1b2a33; }
-.aval.same { fill: #8a4b12; }
+.aval.same { fill: #0b3d2c; }
+.aval.conflict, .aval.wrong { fill: #6a0b0b; }
 
 .anotes {
     fill: #5d6b73;
