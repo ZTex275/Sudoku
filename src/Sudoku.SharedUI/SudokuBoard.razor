@@ -72,7 +72,6 @@ else
         var cls = $"acell chk{(ring + sector) & 1}";
         if (cell == Game.Selected) cls += " selected";
         if (Game.IsGiven(cell)) cls += " given";
-        if (Game.IsPeer(cell)) cls += " peer";
         if (Game.SameValueAsSelected(cell)) cls += " same";
         if (_conflicts.Contains(cell)) cls += " conflict";
         if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
@@ -124,6 +123,12 @@ else
         if (Game.IsGiven(cell)) cls += " given";
         if (Game.IsPeer(cell)) cls += " peer";
         if (Game.SameValueAsSelected(cell)) cls += " same";
+        if (Game.Board.Kind == PuzzleKind.Diagonal)
+        {
+            if (row == col) cls += " diag diag-main";
+            if (row + col == size - 1) cls += " diag diag-anti";
+            if (row == col && row + col == size - 1) cls += " diag-both";
+        }
         if (_conflicts.Contains(cell)) cls += " conflict";
         if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
 

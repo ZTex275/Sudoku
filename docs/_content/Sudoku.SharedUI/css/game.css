@@ -184,7 +184,7 @@ h1, h2 {
 }
 
 .cell.peer {
-    background: rgba(90, 150, 190, 0.28);
+    background: rgba(90, 150, 190, 0.16);
 }
 
 .cell.same {
@@ -198,6 +198,34 @@ h1, h2 {
 .cell.selected {
     background: rgba(217, 164, 65, 0.34);
     z-index: 1;
+}
+
+.stage.diagonal::before,
+.stage.diagonal::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background: linear-gradient(
+        to bottom right,
+        transparent calc(50% - 3.5px),
+        #9a6408 calc(50% - 3.5px),
+        #f0c56a calc(50%),
+        #9a6408 calc(50% + 3.5px),
+        transparent calc(50% + 3.5px)
+    );
+}
+
+.stage.diagonal::after {
+    background: linear-gradient(
+        to bottom left,
+        transparent calc(50% - 3.5px),
+        #9a6408 calc(50% - 3.5px),
+        #f0c56a calc(50%),
+        #9a6408 calc(50% + 3.5px),
+        transparent calc(50% + 3.5px)
+    );
 }
 
 .cell.conflict, .cell.wrong {
@@ -225,6 +253,22 @@ h1, h2 {
 .r7 { background-color: rgba(120, 170, 190, 0.10); }
 .r8 { background-color: rgba(210, 140, 140, 0.10); }
 
+.stage.diagonal .cell.diag {
+    background-color: rgba(217, 164, 65, 0.28);
+}
+
+.stage.diagonal .cell.diag-both {
+    background-color: rgba(217, 164, 65, 0.42);
+}
+
+.stage.diagonal .cell.same {
+    background-color: rgba(46, 160, 110, 0.42);
+}
+
+.stage.diagonal .cell.selected {
+    background-color: rgba(217, 164, 65, 0.62);
+}
+
 .stage.star {
     width: min(100%, 620px);
 }
@@ -243,7 +287,6 @@ h1, h2 {
 
 .acell.chk0 { fill: #f7f1e6; }
 .acell.chk1 { fill: #efcfc4; }
-.acell.peer { fill: #9ec9b8; }
 .acell.same { fill: #5fbf8f; }
 .acell.selected { fill: #e8c36a; }
 .acell.conflict, .acell.wrong { fill: #dd3a30; }
