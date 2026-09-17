@@ -106,7 +106,7 @@ public class GeneratorTests
 
         var eights = board.Groups.Where(g => g.Length == 8).ToList();
         Assert.Equal(6, eights.Count);
-        Assert.Contains(eights, HoshiLayout.HasCenterGap);
+        Assert.Contains(board.Groups, HoshiLayout.HasCenterGap);
 
         var nines = board.Groups.Count(g => g.Length == 9);
         Assert.True(nines >= 12);

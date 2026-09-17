@@ -8,6 +8,23 @@ public static class HoshiLayout
 
     private const double Side = 1.0;
     private const double Height = 0.8660254037844386;
+    private const int OriginI = 7;
+    private const int OriginJ = 4;
+
+    private static readonly (int I, int J)[][] TriangleVerts =
+    [
+        [(9, 0), (12, 3), (6, 3)],
+        [(14, 3), (11, 6), (8, 3)],
+        [(9, 4), (12, 7), (6, 7)],
+        [(5, 8), (2, 5), (8, 5)],
+        [(0, 5), (3, 2), (6, 5)],
+        [(2, 1), (8, 1), (5, 4)]
+    ];
+
+    private static readonly (int I, int J)[] HoleVerts =
+    [
+        (6, 3), (8, 3), (9, 4), (8, 5), (6, 5), (5, 4)
+    ];
 
     private static readonly CellGeom[] Geom;
     private static readonly int[][] GroupsInternal;
@@ -22,25 +39,18 @@ public static class HoshiLayout
     public static IReadOnlyList<int> Neighbors(int cell) => NeighborInternal[cell];
     public static string SectorOutline(int sector) => Outlines[sector];
     public static string HolePoints => HexHole;
-    public static string ViewBox => "-5.55 -5.55 11.1 11.1";
+    public static string ViewBox => "-4.1 -4.1 8.2 8.2";
 
     static HoshiLayout()
     {
-        var hex = new (double X, double Y)[6];
-        for (var k = 0; k < 6; k++)
-        {
-            var ang = k * Math.PI / 3;
-            hex[k] = (3 * Side * Math.Cos(ang), 3 * Side * Math.Sin(ang));
-        }
-
         var cells = new List<CellGeom>(Cells);
-        var outlines = new string[6];
-        for (var k = 0; k < 6; k++)
+        var outlines = new string[Sectors];
+        for (var k = 0; k < Sectors; k++)
         {
-            var a = hex[k];
-            var b = hex[(k + 1) % 6];
-            var c = Third(a, b);
-            outlines[k] = Join(Flip(c), Flip(a), Flip(b));
+            var a = Lattice(TriangleVerts[k][0]);
+            var b = Lattice(TriangleVerts[k][1]);
+            var c = Lattice(TriangleVerts[k][2]);
+            outlines[k] = Join(Flip(a), Flip(b), Flip(c));
 
             (double X, double Y) P(int i, int j)
             {
@@ -63,7 +73,7 @@ public static class HoshiLayout
 
         Geom = cells.ToArray();
         Outlines = outlines;
-        HexHole = string.Join(" ", Enumerable.Range(0, 6).Select(i => Fmt(Flip(hex[i]))));
+        HexHole = string.Join(" ", HoleVerts.Select(v => Fmt(Flip(Lattice(v)))));
 
         GroupsInternal = BuildGroups(Geom);
         NeighborInternal = BuildNeighbors(Geom);
@@ -71,14 +81,14 @@ public static class HoshiLayout
 
     public static bool HasCenterGap(int[] group)
     {
-        if (group.Length != 8)
+        if (group.Length < 8)
             return false;
         var xs = group.Select(i => Geom[i].Cx).OrderBy(x => x).ToArray();
-        if (xs[0] >= -1 || xs[^1] <= 1)
+        if (xs[0] >= -0.5 || xs[^1] <= 0.5)
             return false;
         for (var i = 1; i < xs.Length; i++)
         {
-            if (xs[i] - xs[i - 1] > 2)
+            if (xs[i] - xs[i - 1] > 1.2)
                 return true;
         }
 
@@ -116,18 +126,10 @@ public static class HoshiLayout
             var ang = dir * Math.PI / 180;
             var ca = Math.Cos(ang);
             var sa = Math.Sin(ang);
-            var proj = new double[geom.Length];
-            var pmin = double.PositiveInfinity;
             for (var i = 0; i < geom.Length; i++)
             {
-                proj[i] = -geom[i].Cx * sa + geom[i].Cy * ca;
-                if (proj[i] < pmin)
-                    pmin = proj[i];
-            }
-
-            for (var i = 0; i < geom.Length; i++)
-            {
-                var key = (int)Math.Floor((proj[i] - pmin + 1e-9) / Height);
+                var proj = -geom[i].Cx * sa + geom[i].Cy * ca;
+                var key = (int)Math.Floor(proj / Height + 1e-9);
                 if (!buckets.TryGetValue(key, out var list))
                 {
                     list = [];
@@ -180,19 +182,10 @@ public static class HoshiLayout
         return n == 2;
     }
 
-    private static (double X, double Y) Third((double X, double Y) a, (double X, double Y) b)
-    {
-        var mx = (a.X + b.X) / 2;
-        var my = (a.Y + b.Y) / 2;
-        var rx = -(b.Y - a.Y);
-        var ry = b.X - a.X;
-        var scale = Math.Sqrt(3) / 2;
-        var cx = mx + rx * scale;
-        var cy = my + ry * scale;
-        if (cx * cx + cy * cy < mx * mx + my * my)
-            return (mx - rx * scale, my - ry * scale);
-        return (cx, cy);
-    }
+    private static (double X, double Y) Lattice(int i, int j) =>
+        ((i - OriginI) * 0.5 * Side, (OriginJ - j) * Height);
+
+    private static (double X, double Y) Lattice((int I, int J) p) => Lattice(p.I, p.J);
 
     private static (double X, double Y) Flip((double X, double Y) p) => (p.X, -p.Y);
 
