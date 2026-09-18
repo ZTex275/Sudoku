@@ -94,6 +94,23 @@ public static class BoardFactory
         };
     }
 
+    public static BoardDefinition Restore(PuzzleKind kind, int[]? regionOfCell, SavedCage[]? cages)
+    {
+        return kind switch
+        {
+            PuzzleKind.Classic9 => Classic(9),
+            PuzzleKind.Classic16 => Classic(16),
+            PuzzleKind.Diagonal => Diagonal9(),
+            PuzzleKind.Star => Astra(),
+            PuzzleKind.Hoshi => Hoshi(),
+            PuzzleKind.Jigsaw => Jigsaw(regionOfCell ?? throw new ArgumentException("Для фигурного судоку нужна карта регионов.")),
+            PuzzleKind.Killer => Killer((cages ?? throw new ArgumentException("Для киллера нужны контуры."))
+                .Select((c, i) => new Cage { Id = i, Cells = c.Cells, Sum = c.Sum })
+                .ToList()),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind))
+        };
+    }
+
     public static BoardDefinition Killer(IReadOnlyList<Cage> cages)
     {
         var size = 9;

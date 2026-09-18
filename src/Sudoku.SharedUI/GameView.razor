@@ -21,9 +21,9 @@
     <section class="diff">
         @foreach (var (value, title) in PuzzleCatalog.Difficulties)
         {
-            <button type="button" class="chip @(Difficulty == value ? "active" : null)" @onclick="() => Difficulty = value">@title</button>
+            <button type="button" class="chip @(Difficulty == value ? "active" : null)" disabled="@(!Ready || Busy)" @onclick="() => SetDifficulty(value)">@title</button>
         }
-        <button type="button" class="go" disabled="@Busy" @onclick="StartNew">Новая игра</button>
+        <button type="button" class="go" disabled="@(!Ready || Busy)" @onclick="StartNew">Новая игра</button>
     </section>
 
     @if (!string.IsNullOrEmpty(Error))
@@ -59,7 +59,7 @@
         @foreach (var info in PuzzleCatalog.All)
         {
             var kind = info.Kind;
-            <button type="button" class="kind @(Kind == kind ? "active" : null)" disabled="@Busy" @onclick="() => SelectKind(kind)">
+            <button type="button" class="kind @(Kind == kind ? "active" : null)" disabled="@(!Ready || Busy)" @onclick="() => SelectKind(kind)">
                 <span class="badge">@info.Badge</span>
                 <strong>@info.Title</strong>
                 <small>@info.Subtitle</small>
@@ -86,26 +86,72 @@
 
 @code {
     [Inject] private SudokuGenerator Generator { get; set; } = default!;
+    [Inject] private GamePersistence Persistence { get; set; } = default!;
 
     private ElementReference _root;
     private Timer? _timer;
+    private bool _bootStarted;
+    private int _ticks;
 
     private PuzzleKind Kind { get; set; } = PuzzleKind.Classic9;
     private Difficulty Difficulty { get; set; } = Difficulty.Easy;
     private SudokuGame? Game { get; set; }
+    private bool Ready { get; set; }
     private bool Busy { get; set; }
     private string? Error { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        _timer = new Timer(_ => InvokeAsync(StateHasChanged), null, 1000, 1000);
-        await StartNew();
+        _timer = new Timer(_ => InvokeAsync(OnTick), null, 1000, 1000);
+    }
+
+    private async Task OnTick()
+    {
+        StateHasChanged();
+        _ticks++;
+        if (_ticks % 5 == 0 && Ready && Game is not null && !Busy)
+            await PersistAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender)
+            return;
+
+        await RestoreOrStart();
+        try
+        {
             await _root.FocusAsync();
+        }
+        catch
+        {
+            // поле ещё не в DOM, если партия грузится
+        }
+    }
+
+    private async Task RestoreOrStart()
+    {
+        if (_bootStarted)
+            return;
+        _bootStarted = true;
+
+        var save = await Persistence.LoadAsync();
+        if (save is not null)
+        {
+            Kind = save.Kind;
+            Difficulty = save.Difficulty;
+            var restored = SudokuGame.TryRestore(save);
+            if (restored is not null)
+            {
+                Game = restored;
+                Ready = true;
+                StateHasChanged();
+                return;
+            }
+        }
+
+        Ready = true;
+        await StartNew();
     }
 
     private async Task SelectKind(PuzzleKind kind)
@@ -114,6 +160,12 @@
             return;
         Kind = kind;
         await StartNew();
+    }
+
+    private async Task SetDifficulty(Difficulty value)
+    {
+        Difficulty = value;
+        await PersistAsync();
     }
 
     private async Task StartNew()
@@ -131,6 +183,7 @@
         {
             var puzzle = Generator.Generate(kind, difficulty);
             Game = new SudokuGame(puzzle);
+            await PersistAsync();
         }
         catch (Exception ex)
         {
@@ -179,7 +232,18 @@
         Refresh();
     }
 
-    private void Refresh() => StateHasChanged();
+    private void Refresh()
+    {
+        StateHasChanged();
+        _ = PersistAsync();
+    }
+
+    private async Task PersistAsync()
+    {
+        if (Game is null)
+            return;
+        await Persistence.SaveAsync(Game.ToSaved(Kind, Difficulty));
+    }
 
     private void OnKey(KeyboardEventArgs e)
     {

@@ -22,6 +22,84 @@ public sealed class SudokuGame
         _startedUtc = DateTime.UtcNow;
     }
 
+    public SavedGame ToSaved(PuzzleKind selectedKind, Difficulty selectedDifficulty) => new()
+    {
+        Version = SavedGame.CurrentVersion,
+        Kind = selectedKind,
+        Difficulty = selectedDifficulty,
+        PuzzleKind = Board.Kind,
+        PuzzleDifficulty = Difficulty,
+        RegionOfCell = Board.RegionOfCell.ToArray(),
+        Cages = Board.Cages.Select(c => new SavedCage { Cells = c.Cells.ToArray(), Sum = c.Sum }).ToArray(),
+        Givens = (int[])Givens.Clone(),
+        Solution = (int[])Solution.Clone(),
+        Current = (int[])Current.Clone(),
+        Notes = (ulong[])Notes.Clone(),
+        Selected = Selected,
+        PencilMode = PencilMode,
+        Completed = Completed,
+        ElapsedSeconds = Elapsed.TotalSeconds
+    };
+
+    public static SudokuGame? TryRestore(SavedGame save)
+    {
+        if (save.Givens is null || save.Solution is null || save.Current is null)
+            return null;
+
+        BoardDefinition board;
+        try
+        {
+            board = BoardFactory.Restore(save.PuzzleKind, save.RegionOfCell, save.Cages);
+        }
+        catch
+        {
+            return null;
+        }
+
+        var n = board.CellCount;
+        if (save.Givens.Length != n || save.Solution.Length != n || save.Current.Length != n)
+            return null;
+        if (save.Notes is not null && save.Notes.Length != n)
+            return null;
+
+        var puzzle = new GeneratedPuzzle
+        {
+            Board = board,
+            Difficulty = save.PuzzleDifficulty,
+            Givens = save.Givens,
+            Solution = save.Solution
+        };
+        var game = new SudokuGame(puzzle);
+        for (var i = 0; i < n; i++)
+        {
+            if (game.Givens[i] != 0)
+            {
+                game.Current[i] = game.Givens[i];
+                game.Notes[i] = 0;
+                continue;
+            }
+
+            var value = save.Current[i];
+            game.Current[i] = value >= 0 && value <= board.Size ? value : 0;
+            game.Notes[i] = save.Notes is null || game.Current[i] != 0 ? 0UL : save.Notes[i];
+        }
+
+        game.Selected = save.Selected >= 0 && save.Selected < n ? save.Selected : game.FirstEmpty();
+        game.PencilMode = save.PencilMode;
+        var elapsed = TimeSpan.FromSeconds(Math.Max(0, save.ElapsedSeconds));
+        if (save.Completed && game.Current.All(v => v != 0) && game._solver.IsValid(game.Current, board, allowEmpty: false))
+        {
+            game.Completed = true;
+            game._frozenElapsed = elapsed;
+        }
+        else
+        {
+            game._startedUtc = DateTime.UtcNow - elapsed;
+        }
+
+        return game;
+    }
+
     public BoardDefinition Board { get; }
     public Difficulty Difficulty { get; }
     public int[] Givens { get; }
