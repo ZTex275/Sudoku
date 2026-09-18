@@ -23,7 +23,6 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <AndroidKeyStore>false</AndroidKeyStore>
     <RunAOTCompilation>false</RunAOTCompilation>
     <TrimMode>partial</TrimMode>
   </PropertyGroup>
