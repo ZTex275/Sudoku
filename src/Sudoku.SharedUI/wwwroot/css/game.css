@@ -17,6 +17,7 @@ html, body {
         var(--ink);
     color: var(--paper);
     font-family: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .wrap {
@@ -305,10 +306,38 @@ h1, h2 {
     width: min(100%, 620px);
 }
 
-.astra-board {
+.shape-stage {
+    position: relative;
     width: 100%;
+    height: 0;
+    padding-top: 100%;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.astra-board,
+.hoshi-board {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     display: block;
-    overflow: visible;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+.acell,
+.hcell {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+.acell:focus,
+.hcell:focus,
+.astra-board:focus,
+.hoshi-board:focus {
+    outline: none;
 }
 
 .acell {
@@ -341,12 +370,6 @@ h1, h2 {
 
 .anotes {
     fill: #5d6b73;
-}
-
-.hoshi-board {
-    width: 100%;
-    display: block;
-    overflow: visible;
 }
 
 .hoshi-hole {
