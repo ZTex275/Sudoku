@@ -71,7 +71,9 @@ jobs:
           java-version: 17
 
       - name: Install MAUI Android
-        run: dotnet workload install maui-android
+        run: |
+          dotnet --list-sdks
+          dotnet workload install maui-android
 
       - name: Publish APK
         run: chmod +x publish-android.sh && ./publish-android.sh
