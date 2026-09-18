@@ -168,7 +168,6 @@ else
         var cls = $"hcell hs{HoshiLayout.Sector(cell)}";
         if (cell == Game.Selected) cls += " selected";
         if (Game.IsGiven(cell)) cls += " given";
-        if (Game.IsPeer(cell)) cls += " peer";
         if (Game.SameValueAsSelected(cell)) cls += " same";
         if (_conflicts.Contains(cell)) cls += " conflict";
         if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";

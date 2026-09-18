@@ -392,7 +392,6 @@ h1, h2 {
 .hcell.hs3 { background: #f7c6e4; }
 .hcell.hs4 { background: #f6d39a; }
 .hcell.hs5 { background: #d7ef8f; }
-.hcell.peer { background: #b7d4ea; }
 .hcell.same { background: #5fbf8f; }
 .hcell.selected { background: #e8c36a; z-index: 2; }
 .hcell.conflict, .hcell.wrong { background: #dd3a30; }
