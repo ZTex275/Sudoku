@@ -18,14 +18,6 @@
         </div>
     </header>
 
-    <section class="diff">
-        @foreach (var (value, title) in PuzzleCatalog.Difficulties)
-        {
-            <button type="button" class="chip @(Difficulty == value ? "active" : null)" disabled="@(!Ready || Busy)" @onclick="() => SetDifficulty(value)">@title</button>
-        }
-        <button type="button" class="go" disabled="@(!Ready || Busy)" @onclick="StartNew">Новая игра</button>
-    </section>
-
     @if (!string.IsNullOrEmpty(Error))
     {
         <p class="error">@Error</p>
@@ -55,6 +47,14 @@
         </div>
     }
 
+    <section class="diff">
+        @foreach (var (value, title) in PuzzleCatalog.Difficulties)
+        {
+            <button type="button" class="chip @(Difficulty == value ? "active" : null)" disabled="@(!Ready || Busy)" @onclick="() => SetDifficulty(value)">@title</button>
+        }
+        <button type="button" class="go" disabled="@(!Ready || Busy)" @onclick="StartNew">Новая игра</button>
+    </section>
+
     <section class="picker">
         @foreach (var info in PuzzleCatalog.All)
         {
@@ -70,6 +70,21 @@
     @if (Busy)
     {
         <div class="overlay"><div class="card">Составляю головоломку…</div></div>
+    }
+
+    @if (_pendingSwitch is not null)
+    {
+        <div class="overlay">
+            <div class="card">
+                <p class="eyebrow">Текущая партия</p>
+                <h2>Прогресс будет потерян</h2>
+                <p class="confirm-text">В этой игре уже есть введённые цифры. Переключить и начать заново?</p>
+                <div class="confirm-actions">
+                    <button type="button" class="go" @onclick="ConfirmPending">Да, переключить</button>
+                    <button type="button" @onclick="CancelPending">Остаться</button>
+                </div>
+            </div>
+        </div>
     }
 
     @if (Game?.Completed == true)
@@ -99,6 +114,10 @@
     private bool Ready { get; set; }
     private bool Busy { get; set; }
     private string? Error { get; set; }
+    private Func<Task>? _pendingSwitch;
+
+    private bool NeedsLeaveConfirm =>
+        Game is { Completed: false, HasUserDigits: true };
 
     protected override void OnInitialized()
     {
@@ -156,17 +175,50 @@
 
     private async Task SelectKind(PuzzleKind kind)
     {
-        if (Busy)
+        if (Busy || kind == Kind)
             return;
+        await ConfirmOrRun(() => ApplyKind(kind));
+    }
+
+    private async Task ApplyKind(PuzzleKind kind)
+    {
         Kind = kind;
         await StartNew();
     }
 
     private async Task SetDifficulty(Difficulty value)
     {
-        Difficulty = value;
-        await PersistAsync();
+        if (Busy || value == Difficulty)
+            return;
+        await ConfirmOrRun(() => ApplyDifficulty(value));
     }
+
+    private async Task ApplyDifficulty(Difficulty value)
+    {
+        Difficulty = value;
+        await StartNew();
+    }
+
+    private async Task ConfirmOrRun(Func<Task> action)
+    {
+        if (!NeedsLeaveConfirm)
+        {
+            await action();
+            return;
+        }
+
+        _pendingSwitch = action;
+    }
+
+    private async Task ConfirmPending()
+    {
+        var action = _pendingSwitch;
+        _pendingSwitch = null;
+        if (action is not null)
+            await action();
+    }
+
+    private void CancelPending() => _pendingSwitch = null;
 
     private async Task StartNew()
     {

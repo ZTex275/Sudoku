@@ -118,6 +118,9 @@ public sealed class SudokuGame
 
     public int Remaining => Current.Count(v => v == 0);
 
+    public bool HasUserDigits =>
+        Enumerable.Range(0, Board.CellCount).Any(i => Givens[i] == 0 && Current[i] != 0);
+
     public void Place(int value)
     {
         if (Completed || Selected < 0 || IsGiven(Selected))

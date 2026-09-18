@@ -66,6 +66,24 @@ public class SavedGameTests
     }
 
     [Fact]
+    public void HasUserDigits_TrueOnlyForEnteredValues()
+    {
+        var puzzle = _generator.Generate(PuzzleKind.Classic9, Difficulty.Easy, seed: 3);
+        var game = new SudokuGame(puzzle);
+        Assert.False(game.HasUserDigits);
+
+        var cell = Enumerable.Range(0, game.Board.CellCount).First(i => game.Givens[i] == 0);
+        game.Selected = cell;
+        game.PencilMode = true;
+        game.Place(1);
+        Assert.False(game.HasUserDigits);
+
+        game.PencilMode = false;
+        game.Place(1);
+        Assert.True(game.HasUserDigits);
+    }
+
+    [Fact]
     public void TryRestore_BrokenPayload_ReturnsNull()
     {
         Assert.Null(SudokuGame.TryRestore(new SavedGame()));

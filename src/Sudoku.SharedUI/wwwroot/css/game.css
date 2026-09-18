@@ -61,7 +61,7 @@ h1, h2 {
     margin-top: 28px;
 }
 
-.kind, .chip, .go, .digit, .actions button {
+.kind, .chip, .go, .digit, .actions button, .confirm-actions button {
     font: inherit;
     cursor: pointer;
     border: 1px solid rgba(244, 239, 228, 0.16);
@@ -101,7 +101,7 @@ h1, h2 {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 18px;
+    margin-top: 18px;
 }
 
 .chip, .go, .actions button {
@@ -446,10 +446,32 @@ h1, h2 {
     border-radius: 18px;
     text-align: center;
     min-width: min(90vw, 320px);
+    max-width: min(90vw, 420px);
 }
 
 .overlay.win .go {
     margin: 16px 0 0;
+}
+
+.confirm-text {
+    margin: 12px 0 0;
+    opacity: 0.82;
+}
+
+.confirm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+.confirm-actions button {
+    padding: 8px 14px;
+}
+
+.confirm-actions .go {
+    margin-left: 0;
 }
 
 @media (max-width: 720px) {
