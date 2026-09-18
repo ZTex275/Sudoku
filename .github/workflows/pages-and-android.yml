@@ -1,0 +1,88 @@
+name: Pages and Android
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Test
+        run: dotnet test tests/Sudoku.Tests/Sudoku.Tests.csproj -c Release --nologo
+
+      - name: Publish GitHub Pages
+        run: chmod +x publish-web.sh && ./publish-web.sh
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install MAUI Android
+        run: dotnet workload install maui-android
+
+      - name: Publish APK
+        run: chmod +x publish-android.sh && ./publish-android.sh
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sudoku-android
+          path: artifacts/sudoku.apk
+          if-no-files-found: error
+
+      - name: Publish Android release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android
+          name: Android
+          body: Автосборка судоку для Android. Установка: скачать sudoku.apk и разрешить установку из неизвестных источников.
+          files: artifacts/sudoku.apk
+          fail_on_unmatched_files: true
+          make_latest: true
+          target_commitish: ${{ github.sha }}
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  pages:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

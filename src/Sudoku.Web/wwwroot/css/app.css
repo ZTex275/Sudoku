@@ -22,3 +22,22 @@
     color: #d9a441;
     letter-spacing: 0.12em;
 }
+
+.android-dl {
+    max-width: 980px;
+    margin: 0 auto 32px;
+    padding: 0 16px;
+    text-align: center;
+}
+
+.android-dl a {
+    color: #d9a441;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.android-dl a:hover {
+    text-decoration: underline;
+}
