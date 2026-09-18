@@ -311,114 +311,99 @@ h1, h2 {
     width: 100%;
     height: 0;
     padding-top: 100%;
-    overflow: hidden;
     -webkit-tap-highlight-color: transparent;
 }
 
-.astra-board,
-.hoshi-board {
+@supports (aspect-ratio: 1 / 1) {
+    .shape-stage {
+        height: auto;
+        padding-top: 0;
+        aspect-ratio: 1 / 1;
+    }
+}
+
+.shape-frame {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     overflow: hidden;
+    touch-action: manipulation;
+    cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    outline: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .acell,
-.hcell {
-    -webkit-tap-highlight-color: transparent;
-    outline: none;
-}
-
-.acell:focus,
-.hcell:focus,
-.astra-board:focus,
-.hoshi-board:focus {
-    outline: none;
-}
-
-.acell {
-    stroke: rgba(16, 33, 43, 0.55);
-    stroke-width: 0.012;
-    cursor: pointer;
-}
-
-.acell.chk0 { fill: #f7f1e6; }
-.acell.chk1 { fill: #efcfc4; }
-.acell.same { fill: #5fbf8f; }
-.acell.selected { fill: #e8c36a; }
-.acell.conflict, .acell.wrong { fill: #dd3a30; }
-
-.aval, .anotes {
+.hcell,
+.hoshi-hole,
+.hoshi-outline {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     pointer-events: none;
-    text-anchor: middle;
-    dominant-baseline: middle;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.acell.chk0 { background: #f7f1e6; }
+.acell.chk1 { background: #efcfc4; }
+.acell.same { background: #5fbf8f; }
+.acell.selected { background: #e8c36a; z-index: 2; }
+.acell.conflict, .acell.wrong { background: #dd3a30; }
+
+.aval, .anotes, .hval, .hnotes {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
     font-weight: 650;
     font-family: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+    line-height: 1;
+    white-space: nowrap;
+    z-index: 3;
 }
 
-.aval {
-    fill: #1d5c7a;
+.aval, .hval {
+    color: #1d5c7a;
+    font-size: clamp(11px, 3.6vw, 22px);
 }
 
-.aval.given { fill: #1b2a33; }
-.aval.same { fill: #0b3d2c; }
-.aval.conflict, .aval.wrong { fill: #6a0b0b; }
+.aval.given, .hval.given { color: #1b2a33; }
+.aval.same, .hval.same { color: #0b3d2c; }
+.aval.conflict, .aval.wrong,
+.hval.conflict, .hval.wrong { color: #6a0b0b; }
 
-.anotes {
-    fill: #5d6b73;
+.anotes, .hnotes {
+    color: #5d6b73;
+    font-size: clamp(7px, 2vw, 12px);
 }
 
 .hoshi-hole {
-    fill: rgba(16, 33, 43, 0.22);
-    stroke: none;
+    background: rgba(16, 33, 43, 0.22);
+    z-index: 0;
+}
+
+.hcell.hs0 { background: #f7d6de; }
+.hcell.hs1 { background: #fbe38a; }
+.hcell.hs2 { background: #c8ecfb; }
+.hcell.hs3 { background: #f7c6e4; }
+.hcell.hs4 { background: #f6d39a; }
+.hcell.hs5 { background: #d7ef8f; }
+.hcell.peer { background: #b7d4ea; }
+.hcell.same { background: #5fbf8f; }
+.hcell.selected { background: #e8c36a; z-index: 2; }
+.hcell.conflict, .hcell.wrong { background: #dd3a30; }
+
+.hoshi-outline {
+    background: #1b2a33;
+    z-index: 0;
 }
 
 .hcell {
-    stroke: rgba(16, 33, 43, 0.45);
-    stroke-width: 0.03;
-    cursor: pointer;
-}
-
-.hcell.hs0 { fill: #f7d6de; }
-.hcell.hs1 { fill: #fbe38a; }
-.hcell.hs2 { fill: #c8ecfb; }
-.hcell.hs3 { fill: #f7c6e4; }
-.hcell.hs4 { fill: #f6d39a; }
-.hcell.hs5 { fill: #d7ef8f; }
-.hcell.peer { fill: #b7d4ea; }
-.hcell.same { fill: #5fbf8f; }
-.hcell.selected { fill: #e8c36a; }
-.hcell.conflict, .hcell.wrong { fill: #dd3a30; }
-
-.hoshi-outline {
-    fill: none;
-    stroke: #1b2a33;
-    stroke-width: 0.07;
-    pointer-events: none;
-}
-
-.hval, .hnotes {
-    pointer-events: none;
-    text-anchor: middle;
-    dominant-baseline: middle;
-    font-weight: 650;
-    font-family: "Source Serif 4", "Iowan Old Style", Georgia, serif;
-}
-
-.hval {
-    fill: #1d5c7a;
-}
-
-.hval.given { fill: #1b2a33; }
-.hval.same { fill: #0b3d2c; }
-.hval.conflict, .hval.wrong { fill: #6a0b0b; }
-
-.hnotes {
-    fill: #5d6b73;
+    z-index: 1;
 }
 
 .notes {

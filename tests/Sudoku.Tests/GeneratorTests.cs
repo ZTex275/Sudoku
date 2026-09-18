@@ -1,3 +1,4 @@
+using System.Globalization;
 using Sudoku.Core;
 using Sudoku.Core.Models;
 using Sudoku.Core.Services;
@@ -151,6 +152,55 @@ public class GeneratorTests
                 Assert.Equal(cage.Cells.Length, cage.Cells.Select(i => puzzle.Solution[i]).Distinct().Count());
             });
         }
+    }
+
+    [Fact]
+    public void AstraAndHoshi_CoordinatesStayInvariantUnderRussianCulture()
+    {
+        var previous = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("ru-RU");
+        try
+        {
+            var astra = AstraLayout.PolygonPoints(0, 0);
+            foreach (var pair in astra.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                Assert.Equal(2, pair.Split(',').Length);
+
+            var clip = AstraLayout.CssClip(0, 0);
+            Assert.StartsWith("polygon(", clip);
+            Assert.Contains("%", clip);
+            Assert.DoesNotContain(",%", clip);
+
+            var hoshi = HoshiLayout.PolygonPoints(0);
+            foreach (var pair in hoshi.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                Assert.Equal(2, pair.Split(',').Length);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previous;
+        }
+    }
+
+    [Fact]
+    public void AstraAndHoshi_HitTestFindsCellCentersAndMissesHole()
+    {
+        for (var cell = 0; cell < AstraLayout.Cells; cell++)
+        {
+            var (ring, sector) = AstraLayout.Coords(cell);
+            var (x, y) = AstraLayout.Center(ring, sector);
+            var nx = (x - AstraLayout.ViewOrigin) / AstraLayout.ViewSize;
+            var ny = (y - AstraLayout.ViewOrigin) / AstraLayout.ViewSize;
+            Assert.Equal(cell, AstraLayout.HitTest(nx, ny));
+        }
+
+        Assert.Equal(-1, AstraLayout.HitTest(0.5, 0.5));
+
+        for (var cell = 0; cell < HoshiLayout.Cells; cell++)
+        {
+            var (x, y) = HoshiLayout.CssCenter(cell);
+            Assert.Equal(cell, HoshiLayout.HitTest(x / 100, y / 100));
+        }
+
+        Assert.Equal(-1, HoshiLayout.HitTest(0.5, 0.5));
     }
 
     [Fact]

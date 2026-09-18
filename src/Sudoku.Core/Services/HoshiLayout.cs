@@ -31,6 +31,11 @@ public static class HoshiLayout
     private static readonly int[][] NeighborInternal;
     private static readonly string[] Outlines;
     private static readonly string HexHole;
+    private static readonly (double X, double Y)[][] SectorXy;
+    private static readonly (double X, double Y)[] HoleXy;
+
+    public const double ViewOrigin = -4.1;
+    public const double ViewSize = 8.2;
 
     public static IReadOnlyList<int[]> AllGroups() => GroupsInternal;
     public static int Sector(int cell) => Geom[cell].Sector;
@@ -40,6 +45,28 @@ public static class HoshiLayout
     public static string SectorOutline(int sector) => Outlines[sector];
     public static string HolePoints => HexHole;
     public static string ViewBox => "-4.1 -4.1 8.2 8.2";
+    public static string CssClip(int cell, double inset = 0.08) =>
+        ShapeGeom.CssPolygon(ShapeGeom.Inset(CellVertices(cell), inset), ViewOrigin, ViewSize);
+    public static string CssHole() => ShapeGeom.CssPolygon(HoleXy, ViewOrigin, ViewSize);
+    public static string CssSector(int sector) => ShapeGeom.CssPolygon(SectorXy[sector], ViewOrigin, ViewSize);
+    public static (double X, double Y) CssCenter(int cell)
+    {
+        var g = Geom[cell];
+        return ShapeGeom.ToPct(g.Cx, -g.Cy, ViewOrigin, ViewSize);
+    }
+
+    public static int HitTest(double nx, double ny)
+    {
+        var x = ViewOrigin + nx * ViewSize;
+        var y = ViewOrigin + ny * ViewSize;
+        for (var i = 0; i < Geom.Length; i++)
+        {
+            if (ShapeGeom.PointInConvex(x, y, CellVertices(i)))
+                return i;
+        }
+
+        return -1;
+    }
 
     static HoshiLayout()
     {
@@ -73,7 +100,9 @@ public static class HoshiLayout
 
         Geom = cells.ToArray();
         Outlines = outlines;
-        HexHole = string.Join(" ", HoleVerts.Select(v => Fmt(Flip(Lattice(v)))));
+        SectorXy = TriangleVerts.Select(tri => tri.Select(v => Flip(Lattice(v))).ToArray()).ToArray();
+        HoleXy = HoleVerts.Select(v => Flip(Lattice(v))).ToArray();
+        HexHole = ShapeGeom.SvgPoints(HoleXy);
 
         GroupsInternal = BuildGroups(Geom);
         NeighborInternal = BuildNeighbors(Geom);
@@ -192,7 +221,13 @@ public static class HoshiLayout
     private static string Join(params (double X, double Y)[] pts) =>
         string.Join(" ", pts.Select(Fmt));
 
-    private static string Fmt((double X, double Y) p) => $"{p.X:0.###},{p.Y:0.###}";
+    private static (double X, double Y)[] CellVertices(int cell)
+    {
+        var g = Geom[cell];
+        return [Flip((g.Ax, g.Ay)), Flip((g.Bx, g.By)), Flip((g.Dx, g.Dy))];
+    }
+
+    private static string Fmt((double X, double Y) p) => $"{ShapeGeom.Fmt(p.X)},{ShapeGeom.Fmt(p.Y)}";
 
     private sealed class CellGeom
     {

@@ -5,6 +5,8 @@ public static class AstraLayout
     public const int Sectors = 14;
     public const int Rings = 7;
     public const int Cells = Sectors * Rings;
+    public const double ViewOrigin = -1.14;
+    public const double ViewSize = 2.28;
 
     private const double TwoPi = Math.PI * 2;
     private const double Delta = TwoPi / Sectors;
@@ -58,10 +60,30 @@ public static class AstraLayout
         return grid;
     }
 
-    public static string PolygonPoints(int ring, int sector)
+    public static string PolygonPoints(int ring, int sector) =>
+        ShapeGeom.SvgPoints(Vertices(ring, sector));
+
+    public static string CssClip(int ring, int sector, double inset = 0.07) =>
+        ShapeGeom.CssPolygon(ShapeGeom.Inset(Vertices(ring, sector), inset), ViewOrigin, ViewSize);
+
+    public static (double X, double Y) CssCenter(int ring, int sector)
     {
-        var pts = Vertices(ring, sector);
-        return string.Join(" ", pts.Select(p => $"{p.X:0.###},{p.Y:0.###}"));
+        var (x, y) = Center(ring, sector);
+        return ShapeGeom.ToPct(x, y, ViewOrigin, ViewSize);
+    }
+
+    public static int HitTest(double nx, double ny)
+    {
+        var x = ViewOrigin + nx * ViewSize;
+        var y = ViewOrigin + ny * ViewSize;
+        for (var i = Cells - 1; i >= 0; i--)
+        {
+            var (ring, sector) = Coords(i);
+            if (ShapeGeom.PointInConvex(x, y, Vertices(ring, sector)))
+                return i;
+        }
+
+        return -1;
     }
 
     public static (double X, double Y) Center(int ring, int sector)

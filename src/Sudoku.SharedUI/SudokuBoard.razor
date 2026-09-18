@@ -1,51 +1,57 @@
 @using Sudoku.Core
 @using Sudoku.Core.Models
 @using Sudoku.Core.Services
+@using Microsoft.JSInterop
 
 @if (Game.Board.Kind == PuzzleKind.Star)
 {
     <div class="shape-stage">
-        <svg class="astra-board" viewBox="-1.14 -1.14 2.28 2.28" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="grid" aria-label="Астра" focusable="false">
+        <div class="shape-frame" @ref="_stage" role="grid" aria-label="Астра" @onpointerdown="OnStageClick">
             @for (var i = 0; i < Game.Board.CellCount; i++)
             {
                 var cell = i;
                 var (ring, sector) = AstraLayout.Coords(cell);
-                var (cx, cy) = AstraLayout.Center(ring, sector);
-                <g>
-                    <polygon class="@AstraClass(cell, ring, sector)"
-                             points="@AstraLayout.PolygonPoints(ring, sector)"
-                             role="gridcell"
-                             focusable="false"
-                             @onclick="() => Select(cell)"></polygon>
-                    @((MarkupString)AstraLabel(cell, cx, cy))
-                </g>
+                var clip = AstraLayout.CssClip(ring, sector);
+                var (lx, ly) = AstraLayout.CssCenter(ring, sector);
+                <div class="@AstraClass(cell, ring, sector)" style="-webkit-clip-path: @clip; clip-path: @clip"></div>
+                @if (Game.Current[cell] != 0)
+                {
+                    <span class="@AstraTextClass(cell)" style="left: @Pct(lx); top: @Pct(ly)">@DigitSymbols.Of(Game.Current[cell])</span>
+                }
+                else if (Game.Notes[cell] != 0)
+                {
+                    <span class="anotes" style="left: @Pct(lx); top: @Pct(ly)">@AstraNotes(cell)</span>
+                }
             }
-        </svg>
+        </div>
     </div>
 }
 else if (Game.Board.Kind == PuzzleKind.Hoshi)
 {
     <div class="shape-stage">
-        <svg class="hoshi-board" viewBox="@HoshiLayout.ViewBox" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="grid" aria-label="Звезда" focusable="false">
-            <polygon class="hoshi-hole" points="@HoshiLayout.HolePoints"></polygon>
+        <div class="shape-frame" @ref="_stage" role="grid" aria-label="Звезда" @onpointerdown="OnStageClick">
+            <div class="hoshi-hole" style="-webkit-clip-path: @HoshiLayout.CssHole(); clip-path: @HoshiLayout.CssHole()"></div>
+            @for (var s = 0; s < HoshiLayout.Sectors; s++)
+            {
+                var outline = HoshiLayout.CssSector(s);
+                <div class="hoshi-outline" style="-webkit-clip-path: @outline; clip-path: @outline"></div>
+            }
             @for (var i = 0; i < Game.Board.CellCount; i++)
             {
                 var cell = i;
-                var (cx, cy) = HoshiLayout.Center(cell);
-                <g>
-                    <polygon class="@HoshiClass(cell)"
-                             points="@HoshiLayout.PolygonPoints(cell)"
-                             role="gridcell"
-                             focusable="false"
-                             @onclick="() => Select(cell)"></polygon>
-                    @((MarkupString)HoshiLabel(cell, cx, cy))
-                </g>
+                var clip = HoshiLayout.CssClip(cell);
+                var (lx, ly) = HoshiLayout.CssCenter(cell);
+                <div class="@HoshiClass(cell)" style="-webkit-clip-path: @clip; clip-path: @clip"></div>
+                @if (Game.Current[cell] != 0)
+                {
+                    <span class="@HoshiTextClass(cell)" style="left: @Pct(lx); top: @Pct(ly)">@DigitSymbols.Of(Game.Current[cell])</span>
+                }
+                else if (Game.Notes[cell] != 0)
+                {
+                    <span class="hnotes" style="left: @Pct(lx); top: @Pct(ly)">@AstraNotes(cell)</span>
+                }
             }
-            @for (var s = 0; s < HoshiLayout.Sectors; s++)
-            {
-                <polygon class="hoshi-outline" points="@HoshiLayout.SectorOutline(s)"></polygon>
-            }
-        </svg>
+        </div>
     </div>
 }
 else
@@ -85,7 +91,9 @@ else
 @code {
     [Parameter, EditorRequired] public SudokuGame Game { get; set; } = default!;
     [Parameter] public EventCallback OnChanged { get; set; }
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 
+    private ElementReference _stage;
     private HashSet<int> _conflicts = [];
 
     protected override void OnParametersSet()
@@ -93,11 +101,35 @@ else
         _conflicts = Game.Conflicts().ToHashSet();
     }
 
+    private async Task OnStageClick(PointerEventArgs e)
+    {
+        double[]? n = null;
+        try
+        {
+            n = await JS.InvokeAsync<double[]>("sudokuShape.norm", _stage, e.ClientX, e.ClientY);
+        }
+        catch
+        {
+            // без JS нельзя надёжно перевести пиксели в клетку
+        }
+
+        if (n is not { Length: 2 })
+            return;
+
+        var cell = Game.Board.Kind == PuzzleKind.Star
+            ? AstraLayout.HitTest(n[0], n[1])
+            : HoshiLayout.HitTest(n[0], n[1]);
+        if (cell >= 0)
+            await Select(cell);
+    }
+
     private async Task Select(int cell)
     {
         Game.Selected = cell;
         await OnChanged.InvokeAsync();
     }
+
+    private static string Pct(double value) => ShapeGeom.Pct(value);
 
     private string AstraClass(int cell, int ring, int sector)
     {
@@ -108,22 +140,6 @@ else
         if (_conflicts.Contains(cell)) cls += " conflict";
         if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
         return cls;
-    }
-
-    private string AstraLabel(int cell, double cx, double cy)
-    {
-        var x = cx.ToString("0.###");
-        var y = cy.ToString("0.###");
-        if (Game.Current[cell] != 0)
-        {
-            var value = DigitSymbols.Of(Game.Current[cell]);
-            return $"<text class=\"{AstraTextClass(cell)}\" x=\"{x}\" y=\"{y}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"0.09\">{value}</text>";
-        }
-
-        if (Game.Notes[cell] != 0)
-            return $"<text class=\"anotes\" x=\"{x}\" y=\"{y}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"0.038\">{AstraNotes(cell)}</text>";
-
-        return string.Empty;
     }
 
     private string AstraTextClass(int cell)
@@ -157,22 +173,6 @@ else
         if (_conflicts.Contains(cell)) cls += " conflict";
         if (Game.ShowMistakes && Game.Current[cell] != 0 && Game.Current[cell] != Game.Solution[cell]) cls += " wrong";
         return cls;
-    }
-
-    private string HoshiLabel(int cell, double cx, double cy)
-    {
-        var x = cx.ToString("0.###");
-        var y = (-cy).ToString("0.###");
-        if (Game.Current[cell] != 0)
-        {
-            var value = DigitSymbols.Of(Game.Current[cell]);
-            return $"<text class=\"{HoshiTextClass(cell)}\" x=\"{x}\" y=\"{y}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"0.38\">{value}</text>";
-        }
-
-        if (Game.Notes[cell] != 0)
-            return $"<text class=\"hnotes\" x=\"{x}\" y=\"{y}\" text-anchor=\"middle\" dominant-baseline=\"middle\" font-size=\"0.16\">{AstraNotes(cell)}</text>";
-
-        return string.Empty;
     }
 
     private string HoshiTextClass(int cell)
