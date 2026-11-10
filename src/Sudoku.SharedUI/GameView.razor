@@ -318,6 +318,12 @@
             case "0":
                 Game.ClearSelected();
                 break;
+            case "Shift":
+            case "ShiftLeft":
+            case "ShiftRight":
+                if (!e.Repeat)
+                    Game.PencilMode = !Game.PencilMode;
+                break;
             case "n":
             case "N":
             case "т":

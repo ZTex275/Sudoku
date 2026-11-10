@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Microsoft.JSInterop;
 using Sudoku.Core.Models;
 
 namespace Sudoku.SharedUI;
@@ -12,20 +11,20 @@ public sealed class GamePersistence
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly IJSRuntime _js;
+    private readonly IGameStorage _storage;
 
-    public GamePersistence(IJSRuntime js) => _js = js;
+    public GamePersistence(IGameStorage storage) => _storage = storage;
 
     public async Task SaveAsync(SavedGame save)
     {
         try
         {
             var json = JsonSerializer.Serialize(save, Json);
-            await _js.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
+            await _storage.SaveAsync(json);
         }
         catch
         {
-            // localStorage может быть недоступен — партия просто не запомнится.
+            // Хранилище может быть недоступно — партия просто не запомнится.
         }
     }
 
@@ -33,7 +32,7 @@ public sealed class GamePersistence
     {
         try
         {
-            var json = await _js.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+            var json = await _storage.LoadAsync();
             if (string.IsNullOrWhiteSpace(json))
                 return null;
             return JsonSerializer.Deserialize<SavedGame>(json, Json);

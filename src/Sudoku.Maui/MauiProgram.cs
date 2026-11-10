@@ -17,6 +17,7 @@ public static class MauiProgram
 
         builder.Services.AddMauiBlazorWebView();
         builder.Services.AddSudokuGame();
+        builder.Services.AddSingleton<IGameStorage, MauiGameStorage>();
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
