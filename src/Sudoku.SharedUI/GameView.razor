@@ -29,6 +29,11 @@
             <SudokuBoard Game="Game" OnChanged="Refresh" />
         </div>
 
+        @if (Game.LastHint is { } hint)
+        {
+            <p class="hint"><span class="hint-tag">Подсказка</span> @hint.Explanation</p>
+        }
+
         <div class="pad">
             <div class="digits">
                 @for (var v = 1; v <= Game.Board.Size; v++)

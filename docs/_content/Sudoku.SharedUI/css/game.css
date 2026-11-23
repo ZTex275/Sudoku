@@ -131,6 +131,25 @@ h1, h2 {
     color: var(--rose);
 }
 
+.hint {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border-left: 3px solid var(--mint);
+    border-radius: 10px;
+    background: rgba(125, 202, 165, 0.12);
+    color: #dff7ea;
+    line-height: 1.45;
+}
+
+.hint-tag {
+    display: inline-block;
+    margin-right: 6px;
+    color: var(--mint);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
 .stage {
     position: relative;
     margin: 0 auto 18px;

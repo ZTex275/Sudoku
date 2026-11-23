@@ -110,6 +110,7 @@ public sealed class SudokuGame
     public bool PencilMode { get; set; }
     public bool Completed { get; private set; }
     public bool ShowMistakes { get; private set; }
+    public SudokuHint? LastHint { get; private set; }
     public bool CanUndo => _undo.Count > 0;
 
     public TimeSpan Elapsed => Completed ? _frozenElapsed : DateTime.UtcNow - _startedUtc;
@@ -131,6 +132,7 @@ public sealed class SudokuGame
 
         PushUndo(Selected);
         ShowMistakes = false;
+        LastHint = null;
         if (PencilMode)
         {
             Current[Selected] = 0;
@@ -151,6 +153,7 @@ public sealed class SudokuGame
         Current[Selected] = 0;
         Notes[Selected] = 0;
         ShowMistakes = false;
+        LastHint = null;
     }
 
     public void Undo()
@@ -163,6 +166,7 @@ public sealed class SudokuGame
         Notes[move.Cell] = move.Notes;
         Selected = move.Cell;
         ShowMistakes = false;
+        LastHint = null;
         Completed = false;
     }
 
@@ -219,18 +223,16 @@ public sealed class SudokuGame
         if (Completed)
             return false;
 
-        var empties = Enumerable.Range(0, Board.CellCount)
-            .Where(i => Current[i] == 0)
-            .ToList();
-        if (empties.Count == 0)
+        var hint = HintFinder.Find(Board, Current, Solution, _solver);
+        if (hint is null)
             return false;
 
-        var cell = empties[Random.Shared.Next(empties.Count)];
-        Selected = cell;
+        Selected = hint.Cell;
         PencilMode = false;
-        PushUndo(cell);
-        Current[cell] = Solution[cell];
-        Notes[cell] = 0;
+        PushUndo(hint.Cell);
+        Current[hint.Cell] = hint.Value;
+        Notes[hint.Cell] = 0;
+        LastHint = hint;
         CheckCompletion();
         return true;
     }
