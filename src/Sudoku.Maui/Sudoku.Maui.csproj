@@ -11,9 +11,9 @@
     <Nullable>enable</Nullable>
 
     <ApplicationTitle>Судоку</ApplicationTitle>
-    <ApplicationId>com.sudoku.app</ApplicationId>
-    <ApplicationDisplayVersion>1.1</ApplicationDisplayVersion>
-    <ApplicationVersion>2</ApplicationVersion>
+    <ApplicationId>com.ztex275.sudoku</ApplicationId>
+    <ApplicationDisplayVersion>1.2</ApplicationDisplayVersion>
+    <ApplicationVersion>3</ApplicationVersion>
 
     <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
     <AndroidPackageFormat>apk</AndroidPackageFormat>

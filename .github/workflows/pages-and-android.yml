@@ -94,6 +94,7 @@ jobs:
           body: |
             Автосборка судоку для Android.
             Скачайте sudoku.apk и разрешите установку из неизвестных источников.
+            Если установка не идёт поверх старой версии, удалите прежнее приложение и поставьте APK заново.
           files: artifacts/sudoku.apk
           fail_on_unmatched_files: true
           make_latest: true

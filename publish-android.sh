@@ -33,5 +33,13 @@ if [ -z "$apk" ]; then
   exit 1
 fi
 
+signer="$(command -v apksigner || true)"
+if [ -z "$signer" ] && [ -n "${ANDROID_HOME:-}" ]; then
+  signer="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort | tail -n 1)"
+fi
+if [ -n "$signer" ]; then
+  "$signer" verify --verbose "$apk"
+fi
+
 cp -f "$apk" artifacts/sudoku.apk
 echo "Готово: $apk -> artifacts/sudoku.apk"
